@@ -12,13 +12,22 @@
   const pinnedStore = writable(true)
   $: pinnedStore.set(pinned)
 
+<<<<<<< HEAD
   // Auto-open when a component is selected.
+=======
+  // Auto-open when a component is selected (excluding only the screen background)
+  // Screen component has ID like "screenId-screen", but navigation "screenId-navigation" should open the panel
+>>>>>>> da8465237c (feat: panel pin/collapse UX improvements and nginx custom config)
   $: active = !!(
     $componentStore.selectedComponentId &&
     $selectedScreen?._id &&
     $componentStore.selectedComponentId !== `${$selectedScreen._id}-screen`
   )
 
+<<<<<<< HEAD
+=======
+  // Open when pinned, hovered, or a component is selected
+>>>>>>> da8465237c (feat: panel pin/collapse UX improvements and nginx custom config)
   $: open = pinned || hovered || active
 
   onMount(() => {
@@ -136,6 +145,7 @@
     align-items: stretch;
     min-width: 0;
   }
+<<<<<<< HEAD
 
   /* Mirror the reopen icon horizontally. */
   .icon-rotated {
@@ -144,4 +154,6 @@
     justify-content: center;
     transform: scaleX(-1);
   }
+=======
+>>>>>>> da8465237c (feat: panel pin/collapse UX improvements and nginx custom config)
 </style>

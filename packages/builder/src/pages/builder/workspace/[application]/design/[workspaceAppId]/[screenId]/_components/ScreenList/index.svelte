@@ -17,9 +17,9 @@
 
   let searching = false
   let searchValue = ""
-  let screensContainer!: HTMLDivElement
+  let screensContainer: HTMLDivElement | null = null
   let scrolling = false
-  let newScreenModal: NewScreenModal
+  let newScreenModal: { open?: () => void } | null = null
 
   $: allScreens = $workspaceAppStore.selectedWorkspaceApp?.screens || []
   $: filteredScreens = getFilteredScreens(allScreens, searchValue)
@@ -28,7 +28,7 @@
   $: workspaceAppId = $workspaceAppStore.selectedWorkspaceApp?._id || ""
 
   const handleOpenSearch = async () => {
-    screensContainer.scroll({ top: 0, behavior: "smooth" })
+    screensContainer?.scroll({ top: 0, behavior: "smooth" })
   }
 
   $: {
@@ -38,7 +38,7 @@
   }
 
   const getFilteredScreens = (screens: Screen[], searchValue: string) => {
-    return screens.filter(screen => {
+    return screens.filter((screen: Screen) => {
       return !searchValue || screen.routing.route.includes(searchValue)
     })
   }
