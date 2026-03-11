@@ -16,6 +16,7 @@
   export let wide: boolean | undefined = false
   export let extraWide: boolean | undefined = false
   export let closeButtonIcon: string | undefined = "Close"
+  export let closeButtonTooltip: string | undefined = undefined
   export let noHeaderBorder: boolean | undefined = false
   export let titleCSS: boolean | undefined = true
   export let customWidth: number | undefined = undefined
@@ -81,7 +82,14 @@
         </div>
       {/if}
       {#if showCloseButton}
-        <Icon name={closeButtonIcon} hoverable on:click={onClickCloseButton} />
+        <Icon
+          name={closeButtonIcon}
+          hoverable
+          tooltip={closeButtonTooltip}
+          tooltipPosition={TooltipPosition.Left}
+          tooltipType={TooltipType.Info}
+          on:click={onClickCloseButton}
+        />
       {/if}
     </div>
   {/if}

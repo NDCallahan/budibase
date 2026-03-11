@@ -18,6 +18,11 @@
   import { ActionButton, notifications } from "@budibase/bbui"
   import { capitalise } from "@/helpers"
   import { builderStore } from "@/stores/builder"
+  import { getContext } from "svelte"
+
+  const togglePropertiesPanel = getContext("togglePropertiesPanel")
+  const propertiesPanelPinned = getContext("propertiesPanelPinned")
+  $: closeTooltip = $propertiesPanelPinned ? "Collapse panel" : "Pin panel"
 
   const onUpdateName = async value => {
     try {
@@ -70,6 +75,10 @@
       iconTooltip={componentName}
       borderLeft
       wide
+      showCloseButton={!!togglePropertiesPanel}
+      closeButtonIcon="sidebar-simple"
+      closeButtonTooltip={closeTooltip}
+      onClickCloseButton={togglePropertiesPanel}
     >
       <span class="panel-title-content" slot="panel-title-content">
         <input

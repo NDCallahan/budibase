@@ -2,18 +2,24 @@
   import NavHeader from "@/components/common/NavHeader.svelte"
   import { getVerticalResizeActions } from "@/components/common/resizable"
   import { workspaceAppStore } from "@/stores/builder/workspaceApps"
-  import { Layout } from "@budibase/bbui"
-  import { type Screen } from "@budibase/types"
+  import { Layout, Icon, TooltipPosition, TooltipType } from "@budibase/bbui"
   import NewScreenModal from "../../../../_components/NewScreen/index.svelte"
+  import type { Writable } from "svelte/store"
+  import type { Screen } from "@budibase/types"
   import ScreenNavItem from "./ScreenNavItem.svelte"
+  import { getContext } from "svelte"
+
+  const toggleScreenPanel = getContext<() => void>("toggleScreenPanel")
+  const screenPanelPinned = getContext<Writable<boolean>>("screenPanelPinned")
+  $: collapseTooltip = $screenPanelPinned ? "Collapse panel" : "Pin panel"
 
   const [resizable, resizableHandle] = getVerticalResizeActions()
 
   let searching = false
   let searchValue = ""
-  let screensContainer: HTMLDivElement
+  let screensContainer: HTMLDivElement | null = null
   let scrolling = false
-  let newScreenModal: NewScreenModal
+  let newScreenModal: { open?: () => void } | null = null
 
   $: allScreens = $workspaceAppStore.selectedWorkspaceApp?.screens || []
   $: filteredScreens = getFilteredScreens(allScreens, searchValue)
@@ -22,7 +28,7 @@
   $: workspaceAppId = $workspaceAppStore.selectedWorkspaceApp?._id || ""
 
   const handleOpenSearch = async () => {
-    screensContainer.scroll({ top: 0, behavior: "smooth" })
+    screensContainer?.scroll({ top: 0, behavior: "smooth" })
   }
 
   $: {
@@ -32,13 +38,14 @@
   }
 
   const getFilteredScreens = (screens: Screen[], searchValue: string) => {
-    return screens.filter(screen => {
+    return screens.filter((screen: Screen) => {
       return !searchValue || screen.routing.route.includes(searchValue)
     })
   }
 
-  const handleScroll = (e: any) => {
-    scrolling = e.target.scrollTop !== 0
+  const handleScroll = (e: Event) => {
+    const target = e.target as HTMLElement
+    scrolling = target.scrollTop !== 0
   }
 </script>
 
@@ -49,8 +56,19 @@
       placeholder="Search for screens"
       bind:value={searchValue}
       bind:search={searching}
-      onAdd={() => newScreenModal.open()}
-    />
+      onAdd={() => newScreenModal?.open?.()}
+    >
+      <button slot="right" class="collapse-btn" on:click={toggleScreenPanel}>
+        <Icon
+          name="sidebar-simple"
+          size="S"
+          hoverable
+          tooltip={collapseTooltip}
+          tooltipPosition={TooltipPosition.Left}
+          tooltipType={TooltipType.Info}
+        />
+      </button>
+    </NavHeader>
   </div>
   <div on:scroll={handleScroll} bind:this={screensContainer} class="content">
     {#if filteredScreens?.length}
@@ -77,6 +95,22 @@
 <NewScreenModal bind:this={newScreenModal} {workspaceAppId} />
 
 <style>
+  .collapse-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 4px;
+    color: var(--spectrum-global-color-gray-700);
+    padding: 0;
+  }
+  .collapse-btn:hover {
+    background: var(--spectrum-global-color-gray-200);
+  }
   .screens {
     display: flex;
     flex-direction: column;

@@ -10,6 +10,8 @@
   } from "@/stores/builder"
   import { onDestroy } from "svelte"
   import LeftPanel from "./_components/LeftPanel.svelte"
+  import ScreenPanel from "./_components/ScreenPanel.svelte"
+  import PropertiesPanel from "./_components/PropertiesPanel.svelte"
   import TopBar from "@/components/common/TopBar.svelte"
 
   // Extract stores from namespace for Svelte 5 compatibility
@@ -60,9 +62,13 @@
       icon="browser"
     ></TopBar>
     <div class="content">
-      <LeftPanel />
+      <ScreenPanel>
+        <LeftPanel />
+      </ScreenPanel>
       <AppPanel />
-      <slot />
+      <PropertiesPanel>
+        <slot />
+      </PropertiesPanel>
     </div>
   </div>
 {/if}

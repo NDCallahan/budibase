@@ -1,7 +1,12 @@
 <script>
   import NavItemConfiguration from "./NavItemConfiguration.svelte"
   import { get } from "svelte/store"
+  import { getContext } from "svelte"
   import Panel from "@/components/design/Panel.svelte"
+
+  const togglePropertiesPanel = getContext("togglePropertiesPanel")
+  const propertiesPanelPinned = getContext("propertiesPanelPinned")
+  $: closeTooltip = $propertiesPanelPinned ? "Collapse panel" : "Pin panel"
   import {
     Toggle,
     DetailSummary,
@@ -85,6 +90,10 @@
   icon={$selectedScreen?.showNavigation ? "eye" : "eye-slash"}
   borderLeft
   wide
+  showCloseButton={!!togglePropertiesPanel}
+  closeButtonIcon="sidebar-simple"
+  closeButtonTooltip={closeTooltip}
+  onClickCloseButton={togglePropertiesPanel}
 >
   <DetailSummary name="General" initiallyShow collapsible={false}>
     <PropertyControl
