@@ -88,6 +88,7 @@ import VoltIOLogo from "assets/rest-template-icons/volt-io.svg"
 import WorkableLogo from "assets/rest-template-icons/workable.svg"
 import XLogo from "assets/rest-template-icons/x.svg"
 import ZendeskLogo from "assets/rest-template-icons/zendesk.svg"
+import VoipMsLogo from "assets/rest-template-icons/voip-ms.svg"
 
 interface RestTemplatesState {
   templates: RestTemplate[]
@@ -1767,6 +1768,19 @@ const splunkRestTemplateGroup: RestTemplateGroup<"Splunk"> = {
 
 const INITIAL_REST_TEMPLATES_STATE: RestTemplatesState = {
   templates: [
+    {
+      name: "Voip.ms",
+      description:
+        "VoIP platform API for managing calls, messaging, accounts, and billing",
+      specs: [
+        {
+          version: "1.0",
+          url: "https://raw.githubusercontent.com/NDCallahan/api_specs/main/voipms.yaml?t=8785478",
+        },
+      ],
+      operationsCount: 66,
+      icon: VoipMsLogo,
+    },
     {
       name: "Attio",
       description:

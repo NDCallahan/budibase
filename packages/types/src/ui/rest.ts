@@ -84,6 +84,7 @@ export type RestTemplateName =
   | "Volt IO"
   | "Workable"
   | "X"
+  | "Voip.ms"
   | HubSpotRestTemplateName
   | MicrosoftSharepointRestTemplateName
   | SplunkRestTemplateName
