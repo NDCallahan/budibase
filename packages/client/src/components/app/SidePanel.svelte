@@ -1,5 +1,6 @@
 <script>
-  import { getContext } from "svelte"
+  import { getContext, tick } from "svelte"
+  import { get } from "svelte/store"
 
   const component = getContext("component")
   const { styleable, sidePanelStore, builderStore, dndIsDragging } =
@@ -58,7 +59,13 @@
     const effectiveSize = size === ":default" ? null : size
     if (open && effectiveSize) {
       if ($builderStore.inBuilder) {
-        sidePanelStore.actions.setSize(effectiveSize)
+        // Avoid a reactive churn loop by only updating the store if the size
+        // actually changes. In builder mode, this block re-runs often as the
+        // component re-renders, so re-setting the same value causes unnecessary
+        // store updates.
+        if ($sidePanelStore.size !== effectiveSize) {
+          sidePanelStore.actions.setSize(effectiveSize)
+        }
       } else if ($sidePanelStore.size == null) {
         sidePanelStore.actions.setSize(effectiveSize)
       }
@@ -133,8 +140,15 @@
         if (target.contains(node)) {
           target.removeChild(node)
           handleSidePanelClose()
-          // Ensure container background is cleared when panel is hidden
-          applyContainerBackground(false, "", "")
+
+          // Wait one tick so any other panel that is opening can set its
+          // background first. If no panel is open after that, clear the
+          // shared container background.
+          tick().then(() => {
+            if (!get(sidePanelStore).contentId) {
+              applyContainerBackground(false, "", "")
+            }
+          })
         }
       }
     }
