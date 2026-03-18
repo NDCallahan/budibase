@@ -629,7 +629,7 @@
     width: 1400px;
   }
   .size--max {
-    width: 400px;
+    width: 100%;
   }
   /* Note: size variants are defined earlier; keep those as the source of width values. */
   .nav-toggle:hover {
