@@ -412,7 +412,7 @@
     class:open={$sidePanelStore.open}
     use:clickOutside={autoCloseSidePanel ? sidePanelStore.actions.close : null}
     class:builder={$builderStore.inBuilder}
-    class={"size--" + ($sidePanelStore.size || "medium")}
+    class={"size--" + ($sidePanelStore.size || "small")}
   >
     <div class="side-panel-header">
       <Icon
