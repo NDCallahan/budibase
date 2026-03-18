@@ -46,3 +46,15 @@
   <Label small>Size</Label>
   <Select bind:value={parameters.size} options={sizeOptions} />
 </div>
+
+<style>
+  .root {
+    display: grid;
+    column-gap: var(--spacing-l);
+    row-gap: var(--spacing-s);
+    grid-template-columns: 60px 1fr;
+    align-items: center;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+</style>
