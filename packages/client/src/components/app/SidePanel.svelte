@@ -141,9 +141,9 @@
           target.removeChild(node)
           handleSidePanelClose()
 
-          // Wait one tick so any other panel that is opening can set its
-          // background first. If no panel is open after that, clear the
-          // shared container background.
+          // Wait so any other panel that is opening can set its background
+          // first. If no panel is open after that, clear the shared container
+          // background.
           tick().then(() => {
             if (!get(sidePanelStore).contentId) {
               applyContainerBackground(false, "", "")
