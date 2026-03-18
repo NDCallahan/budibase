@@ -609,6 +609,9 @@
     align-self: center;
     flex: 1;
   }
+  .main.size--max {
+    padding: 0;
+  }
   .main:not(.size--max):has(.screenslot-dom > .component > .grid) {
     padding: calc(32px - var(--grid-spacing) * 2px);
   }
@@ -632,6 +635,17 @@
     width: 100%;
   }
   /* Note: size variants are defined earlier; keep those as the source of width values. */
+  .nav-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: var(--spacing-s);
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    flex-shrink: 0;
+    align-self: flex-start;
+  }
   .nav-toggle:hover {
     background-color: rgba(255, 255, 255, 0.25);
   }

@@ -36,8 +36,8 @@
 
   // Derive a render key which is only changed whenever this panel is made
   // visible after being hidden. We need to key the content to avoid showing
-  // stale data when re-revealed, but we cannot hide the content altogether
-  // when hidden as this breaks ejection.
+  // stale data when re-revealing a side panel that was closed, but we cannot
+  // hide the content altogether when hidden as this breaks ejection.
   let renderKey = null
   $: {
     if (open) {
@@ -107,6 +107,12 @@
     }
   }
 
+  // When the panel is closed, we need to clear the shared container background so
+  // that it doesn't affect other panels that use the same container.
+  // We wait until the next tick to clear the background so that if another panel
+  // is opening at the same time, it can set the background for the shared
+  // container first. If no panel is open after that, clear the shared container
+  // background.
   function applyContainerBackground(isOpen, bgColor, bgImage) {
     const container = document.getElementById("side-panel-container")
     if (!container) return
@@ -163,6 +169,9 @@
   }
 </script>
 
+<!-- switched to use innerstyles for the inner content to avoid double-applying
+background styles that are meant to be on the container. This also solves the flickering
+that happens whn a closed panel clears its background while a new one is opened. -->
 <div
   use:styleable={innerStyles}
   use:showInSidePanel={open}
