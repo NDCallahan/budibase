@@ -94,6 +94,12 @@
   // Apply / remove background on the container whenever open or bg changes.
   $: applyContainerBackground(open, panelBgColor, panelBgImage)
 
+  const handleSidePanelClose = async () => {
+    if (onClose) {
+      await onClose()
+    }
+  }
+
   function applyContainerBackground(isOpen, bgColor, bgImage) {
     const container = document.getElementById("side-panel-container")
     if (!container) return
