@@ -105,12 +105,7 @@ services:
 
   couchdb-service:
     restart: unless-stopped
-<<<<<<< HEAD
     image: budibase/database:2.1.0
-=======
-    container_name: bbcouchdb-01
-    image: budibase/database:2.0.0
->>>>>>> 1d92caf606 (added files to .gitignore)
     environment:
       - COUCHDB_PASSWORD=${COUCH_DB_PASSWORD}
       - COUCHDB_USER=${COUCH_DB_USER}
