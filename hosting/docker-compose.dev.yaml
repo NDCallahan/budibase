@@ -1,3 +1,6 @@
+
+name: budibase-development
+
 # optional ports are specified throughout for more advanced use cases.
 
 services:
