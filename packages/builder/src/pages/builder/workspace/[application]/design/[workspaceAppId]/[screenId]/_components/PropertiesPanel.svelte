@@ -13,11 +13,15 @@
   $: pinnedStore.set(pinned)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   // Auto-open when a component is selected.
 =======
   // Auto-open when a component is selected (excluding only the screen background)
   // Screen component has ID like "screenId-screen", but navigation "screenId-navigation" should open the panel
 >>>>>>> da8465237c (feat: panel pin/collapse UX improvements and nginx custom config)
+=======
+  // Auto-open when a component is selected.
+>>>>>>> 3d2b659dbc (fix:corrected screen properties to open when clicked on)
   $: active = !!(
     $componentStore.selectedComponentId &&
     $selectedScreen?._id &&
@@ -25,9 +29,12 @@
   )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   // Open when pinned, hovered, or a component is selected
 >>>>>>> da8465237c (feat: panel pin/collapse UX improvements and nginx custom config)
+=======
+>>>>>>> 3d2b659dbc (fix:corrected screen properties to open when clicked on)
   $: open = pinned || hovered || active
 
   onMount(() => {
