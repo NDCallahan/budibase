@@ -86,28 +86,22 @@
 </div>
 
 <style>
-  .wrapper {
+  .content {
+    flex: 1 1 auto;
+    height: 100%;
     display: flex;
     flex-direction: row;
     align-items: stretch;
-    height: 100%;
+    min-width: 0;
   }
-  .panel {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    height: 100%;
-    width: 0;
-    background: var(--background);
-    transition: width 160ms cubic-bezier(0.22, 1, 0.36, 1);
-    overflow: hidden;
+
+  /* Mirror the reopen icon horizontally. */
+  .icon-rotated {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transform: scaleX(-1);
   }
-  .panel.open {
-    width: 310px;
-    border-left: 1px solid var(--spectrum-global-color-gray-200);
-  }
-  .reopen-btn {
-    flex: 0 0 36px;
     width: 36px;
     height: 100%;
     display: flex;
@@ -153,6 +147,9 @@
     min-width: 0;
   }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 92853cfec2 (mirrored icon since panel collapses to the right.)
 
   /* Mirror the reopen icon horizontally. */
   .icon-rotated {
@@ -161,6 +158,9 @@
     justify-content: center;
     transform: scaleX(-1);
   }
+<<<<<<< HEAD
 =======
 >>>>>>> da8465237c (feat: panel pin/collapse UX improvements and nginx custom config)
+=======
+>>>>>>> 92853cfec2 (mirrored icon since panel collapses to the right.)
 </style>
