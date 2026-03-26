@@ -82,14 +82,16 @@
         </div>
       {/if}
       {#if showCloseButton}
-        <Icon
-          name={closeButtonIcon}
-          hoverable
-          tooltip={closeButtonTooltip}
-          tooltipPosition={TooltipPosition.Left}
-          tooltipType={TooltipType.Info}
-          on:click={onClickCloseButton}
-        />
+        <span class="icon-rotated-close">
+          <Icon
+            name={closeButtonIcon}
+            hoverable
+            tooltip={closeButtonTooltip}
+            tooltipPosition={TooltipPosition.Left}
+            tooltipType={TooltipType.Info}
+            on:click={onClickCloseButton}
+          />
+        </span>
       {/if}
     </div>
   {/if}
@@ -201,5 +203,13 @@
   }
   .title {
     display: flex;
+  }
+
+  /* Mirror the close button icon horizontally. */
+  .icon-rotated-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transform: scaleX(-1);
   }
 </style>
