@@ -12,15 +12,13 @@
   const pinnedStore = writable(true)
   $: pinnedStore.set(pinned)
 
-  // Auto-open when a component is selected (excluding only the screen background)
-  // Screen component has ID like "screenId-screen", but navigation "screenId-navigation" should open the panel
+  // Auto-open when a component is selected.
   $: active = !!(
     $componentStore.selectedComponentId &&
     $selectedScreen?._id &&
     $componentStore.selectedComponentId !== `${$selectedScreen._id}-screen`
   )
 
-  // Open when pinned, hovered, or a component is selected
   $: open = pinned || hovered || active
 
   onMount(() => {

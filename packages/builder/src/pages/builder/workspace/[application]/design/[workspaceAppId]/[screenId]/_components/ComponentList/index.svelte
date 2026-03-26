@@ -68,13 +68,17 @@
             text="Screen"
             indentLevel={0}
             selected={$componentStore.selectedComponentId ===
-              `${$screenStore.selectedScreenId}-screen`}
+              `${$screenStore.selectedScreenId}-screen` ||
+              $componentStore.selectedComponentId ===
+                `${$screenStore.selectedScreenId}-screen-explicit`}
             opened
             scrollable
             icon="browser"
             on:drop={onDrop}
             on:click={() => {
-              componentStore.select(`${$screenStore.selectedScreenId}-screen`)
+              componentStore.select(
+                `${$screenStore.selectedScreenId}-screen-explicit`
+              )
             }}
             hovering={$hoverStore.componentId === screenComponentId ||
               $selectedScreen?.props._id === $contextMenuStore.id}

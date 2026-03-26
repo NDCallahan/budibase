@@ -6,6 +6,7 @@
     contextMenuStore,
     componentStore,
   } from "@/stores/builder"
+
   import NavItem from "@/components/common/NavItem.svelte"
   import RoleIndicator from "./RoleIndicator.svelte"
   import ScreenDetailsModal from "@/components/design/ScreenDetailsModal.svelte"
@@ -111,7 +112,10 @@
   selected={$screenStore.selectedScreenId === screen._id}
   hovering={screen._id === $contextMenuStore.id}
   text={screen.routing.route}
-  on:click={() => screenStore.select(screen._id)}
+  on:click={() => {
+    screenStore.select(screen._id)
+    componentStore.select(`${screen._id}-screen-explicit`)
+  }}
   rightAlignIcon
   showTooltip
   selectedBy={$userSelectedResourceMap[screen._id]}

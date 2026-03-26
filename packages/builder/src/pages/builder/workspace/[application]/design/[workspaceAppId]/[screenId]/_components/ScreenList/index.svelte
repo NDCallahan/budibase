@@ -38,7 +38,7 @@
   }
 
   const getFilteredScreens = (screens: Screen[], searchValue: string) => {
-    return screens.filter((screen: Screen) => {
+    return screens.filter(screen => {
       return !searchValue || screen.routing.route.includes(searchValue)
     })
   }

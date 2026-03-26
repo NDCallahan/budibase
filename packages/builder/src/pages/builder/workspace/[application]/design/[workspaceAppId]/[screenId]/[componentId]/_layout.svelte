@@ -38,6 +38,7 @@
 
   const validate = id => {
     if (id === `${$screenStore.selectedScreenId}-screen`) return true
+    if (id === `${$screenStore.selectedScreenId}-screen-explicit`) return true
     if (id === `${$screenStore.selectedScreenId}-navigation`) return true
 
     return !!findComponent($selectedScreen?.props, id)
@@ -58,7 +59,7 @@
   onDestroy(stopSyncing)
 </script>
 
-{#if routeComponentId === `${$screenStore.selectedScreenId}-screen`}
+{#if routeComponentId === `${$screenStore.selectedScreenId}-screen` || routeComponentId === `${$screenStore.selectedScreenId}-screen-explicit`}
   <ScreenSettingsPanel />
 {:else if routeComponentId === `${$screenStore.selectedScreenId}-navigation`}
   <NavigationPanel />
