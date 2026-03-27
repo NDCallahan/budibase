@@ -45,12 +45,24 @@
 
   const gradientOptions = [
     { label: "None", value: "" },
-    { label: "Purple Haze", value: "linear-gradient(135deg, #667eea, #764ba2)" },
-    { label: "Peach Sunset", value: "linear-gradient(135deg, #f6d365, #fda085)" },
+    {
+      label: "Purple Haze",
+      value: "linear-gradient(135deg, #667eea, #764ba2)",
+    },
+    {
+      label: "Peach Sunset",
+      value: "linear-gradient(135deg, #f6d365, #fda085)",
+    },
     { label: "Emerald", value: "linear-gradient(135deg, #11998e, #38ef7d)" },
     { label: "Ocean Blue", value: "linear-gradient(135deg, #2193b0, #6dd5ed)" },
-    { label: "Crimson Flame", value: "linear-gradient(135deg, #ee0979, #ff6a00)" },
-    { label: "Golden Hour", value: "linear-gradient(135deg, #f7971e, #ffd200)" },
+    {
+      label: "Crimson Flame",
+      value: "linear-gradient(135deg, #ee0979, #ff6a00)",
+    },
+    {
+      label: "Golden Hour",
+      value: "linear-gradient(135deg, #f7971e, #ffd200)",
+    },
     { label: "Cosmic", value: "linear-gradient(135deg, #4776e6, #8e54e9)" },
     { label: "Teal Wave", value: "linear-gradient(135deg, #43b89c, #2c7ee0)" },
     { label: "Electric", value: "linear-gradient(135deg, #fc466b, #3f5efb)" },
@@ -283,5 +295,4 @@
   .title-spacing {
     margin-bottom: 10px;
   }
-
 </style>
