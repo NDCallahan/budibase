@@ -126,7 +126,10 @@
                   options={getRemainingColumnOptions(column.name)}
                   on:change={e => (column.displayName = e.detail)}
                 />
-                <Input bind:value={column.displayName} placeholder="Label" />
+                <Input
+                  bind:value={column.displayName}
+                  placeholder={schema[column.name]?.displayName || "Label"}
+                />
                 {#if allowCellEditing}
                   <CellEditor bind:column />
                 {/if}
