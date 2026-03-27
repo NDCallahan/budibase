@@ -152,6 +152,10 @@ export async function update(
       ? workspaceApp.customTheme
       : persisted.customTheme,
     disabled: workspaceApp.disabled,
+    icon: workspaceApp.icon,
+    iconColor: workspaceApp.iconColor,
+    iconBackground: workspaceApp.iconBackground,
+    iconSize: workspaceApp.iconSize,
 
     // Immutable properties
     createdAt: persisted.createdAt,

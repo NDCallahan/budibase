@@ -12,12 +12,20 @@ export interface WorkspaceAppResponse {
   createdAt: string
   updatedAt: string
   disabled?: boolean
+  icon?: string
+  iconColor?: string
+  iconBackground?: string
+  iconSize?: string
 }
 
 export interface InsertWorkspaceAppRequest {
   name: string
   url: string
   disabled?: boolean
+  icon?: string
+  iconColor?: string
+  iconBackground?: string
+  iconSize?: string
 }
 
 export interface InsertWorkspaceAppResponse {
@@ -37,6 +45,10 @@ export interface UpdateWorkspaceAppRequest {
   theme?: Theme
   customTheme?: AppCustomTheme
   disabled?: boolean
+  icon?: string
+  iconColor?: string
+  iconBackground?: string
+  iconSize?: string
 }
 
 export interface UpdateWorkspaceAppResponse {

@@ -25,6 +25,7 @@ export interface Workspace extends Document {
   automationErrors?: WorkspaceMetadataErrors
   backupErrors?: WorkspaceMetadataErrors
   icon?: WorkspaceIcon
+  appIcon?: WorkspaceIcon
   features?: WorkspaceFeatures
   automations?: AutomationSettings
   usedPlugins?: Plugin[]
@@ -105,6 +106,8 @@ export interface AppBanner {
 export interface WorkspaceIcon {
   name: string
   color: string
+  background?: string
+  size?: string
 }
 
 export interface WorkspaceFeatures {

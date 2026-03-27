@@ -29,6 +29,10 @@ function toWorkspaceAppResponse(
     createdAt: workspaceApp.createdAt as string,
     updatedAt: workspaceApp.updatedAt!,
     disabled: workspaceApp.disabled,
+    icon: workspaceApp.icon,
+    iconColor: workspaceApp.iconColor,
+    iconBackground: workspaceApp.iconBackground,
+    iconSize: workspaceApp.iconSize,
   }
 }
 
@@ -80,6 +84,10 @@ export async function create(
       fontFamily: DefaultNewAppFontFamily,
     },
     isDefault: false,
+    icon: body.icon,
+    iconColor: body.iconColor,
+    iconBackground: body.iconBackground,
+    iconSize: body.iconSize,
   }
 
   const workspaceApp = await sdk.workspaceApps.create(newWorkspaceApp)
@@ -98,7 +106,20 @@ export async function edit(
     ctx.throw(400, "Path and body ids do not match")
   }
 
-  const workspaceApp = await sdk.workspaceApps.update(body)
+  const toUpdate = {
+    _id: body._id,
+    _rev: body._rev,
+    name: body.name,
+    url: body.url,
+    navigation: body.navigation,
+    disabled: body.disabled,
+    icon: body.icon,
+    iconColor: body.iconColor,
+    iconBackground: body.iconBackground,
+    iconSize: body.iconSize,
+  }
+
+  const workspaceApp = await sdk.workspaceApps.update(toUpdate)
   ctx.body = {
     workspaceApp: toWorkspaceAppResponse(workspaceApp),
   }

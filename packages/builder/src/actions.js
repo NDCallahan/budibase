@@ -71,6 +71,10 @@ export const gradient = (node, config = {}) => {
       )
     }
 
+    if (config.background) {
+      node.style = `opacity:1;background:${config.background};background-image:none;`
+      return
+    }
     let css = `opacity:0.9;background:${randomHSL(seed, version, 0.7)};`
     css += "background-image:"
     for (let i = 0; i < points - 1; i++) {

@@ -10,4 +10,8 @@ export interface WorkspaceApp extends Document {
   customTheme?: AppCustomTheme
   isDefault: boolean
   disabled?: boolean
+  icon?: string
+  iconColor?: string
+  iconBackground?: string
+  iconSize?: string
 }
