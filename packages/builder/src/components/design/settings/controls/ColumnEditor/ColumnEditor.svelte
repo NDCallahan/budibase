@@ -84,9 +84,21 @@
         displayName: col,
       }))
     }
-    return columns.filter(column => {
-      return options.includes(column.name)
-    })
+    return columns
+      .filter(column => {
+        return options.includes(column.name)
+      })
+      .map(column => {
+        // Normalize falsy displayName values (including "false" string) to undefined
+        // so they don't override schema defaults
+        if (!column.displayName || column.displayName === "false") {
+          return {
+            ...column,
+            displayName: undefined,
+          }
+        }
+        return column
+      })
   }
 
   const open = () => {

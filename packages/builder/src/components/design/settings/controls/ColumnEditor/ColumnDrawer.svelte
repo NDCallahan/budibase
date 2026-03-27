@@ -129,6 +129,12 @@
                 <Input
                   bind:value={column.displayName}
                   placeholder={schema[column.name]?.displayName || "Label"}
+                  on:blur={e => {
+                    // Clear falsy values to allow schema default to take precedence
+                    if (!column.displayName || column.displayName === "false") {
+                      column.displayName = undefined
+                    }
+                  }}
                 />
                 {#if allowCellEditing}
                   <CellEditor bind:column />

@@ -149,7 +149,10 @@
       // Ensure a human-readable label exists for the tables component.
       // If displayName is missing/undefined, default it to the column name so
       // headers and other consumers always have a sensible label.
-      if (newSchema[columnName].displayName === undefined || newSchema[columnName].displayName === null) {
+      if (
+        newSchema[columnName].displayName === undefined ||
+        newSchema[columnName].displayName === null
+      ) {
         newSchema[columnName].displayName = columnName
       }
       if (!canBeSortColumn(schema[columnName])) {

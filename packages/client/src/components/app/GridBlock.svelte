@@ -166,8 +166,8 @@
       // Enrich columns with schema displayName if no label is set
       return columns.map(column => {
         let enrichedColumn = { ...column }
-        // If column has no label, try to get default from schema
-        if (!enrichedColumn.label && datasource) {
+        // If column has no label (including the string "false"), try to get default from schema
+        if ((!enrichedColumn.label || enrichedColumn.label === "false") && datasource) {
           const schemaField = datasource.schema?.[column.field]
           if (schemaField?.displayName) {
             enrichedColumn.label = schemaField.displayName
