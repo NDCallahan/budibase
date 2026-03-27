@@ -53,7 +53,7 @@
   $: id = $component.id
   $: currentTheme = $context?.device?.theme
   $: darkMode = !currentTheme?.includes("light")
-  $: parsedColumns = getParsedColumns(columns)
+  $: parsedColumns = getParsedColumns(columns, table)
   $: enrichedButtons = enrichButtons(buttons)
   $: schemaOverrides = getSchemaOverrides(parsedColumns, $context)
   $: selectedRows = deriveSelectedRows(gridContext)
@@ -156,14 +156,25 @@
     }
   }
 
-  // Parses columns to fix older formats
-  const getParsedColumns = columns => {
+  // Parses columns to fix older formats and enriches with schema defaults
+  const getParsedColumns = (columns, datasource) => {
     if (!columns?.length) {
       return []
     }
     // If the first element has an active key all elements should be in the new format
     if (columns[0].active !== undefined) {
-      return columns
+      // Enrich columns with schema displayName if no label is set
+      return columns.map(column => {
+        let enrichedColumn = { ...column }
+        // If column has no label, try to get default from schema
+        if (!enrichedColumn.label && datasource) {
+          const schemaField = datasource.schema?.[column.field]
+          if (schemaField?.displayName) {
+            enrichedColumn.label = schemaField.displayName
+          }
+        }
+        return enrichedColumn
+      })
     }
     return columns.map(column => ({
       label: column.displayName || column.name,
