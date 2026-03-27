@@ -176,7 +176,8 @@
     let overrides = {}
     columns.forEach((column, idx) => {
       overrides[column.field] = {
-        displayName: column.label,
+        // Only set displayName if it has a value; otherwise let schema default take precedence
+        ...(column.label ? { displayName: column.label } : {}),
         order: idx,
         visible: !!column.active,
         conditions: enrichGridConditions(column.conditions, context),
