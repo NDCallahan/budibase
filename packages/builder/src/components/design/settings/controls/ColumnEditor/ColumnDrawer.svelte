@@ -145,9 +145,8 @@
                   }}
                 />
                 <Input
-                  value={column?.displayName}
-                  placeholder="Label"
-                  on:change={e => (column.displayName = e.detail)}
+                  bind:value={column.displayName}
+                  placeholder={schema[column.name]?.displayName || "Label"}
                 />
                 {#if allowCellEditing}
                   <CellEditor
