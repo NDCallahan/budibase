@@ -12,6 +12,8 @@
     ModalContent,
     notifications,
   } from "@budibase/bbui"
+  import ChooseIconModal from "@/components/start/ChooseIconModal.svelte"
+  import EditableIcon from "@/components/common/EditableIcon.svelte"
   import {
     PublishResourceState,
     type UIWorkspaceApp,
@@ -102,8 +104,26 @@
       url: workspaceApp?.url ?? "",
       navigation: workspaceApp?.navigation ?? { navigation: "Top" },
       isDefault: workspaceApp?.isDefault ?? false,
+      icon: workspaceApp?.icon,
+      iconColor: workspaceApp?.iconColor,
+      iconBackground: workspaceApp?.iconBackground,
+      iconSize: workspaceApp?.iconSize,
     }
     validationState = { errors: {}, touched: {} }
+  }
+
+  const updateIcon = (
+    e: CustomEvent<{
+      name: string
+      color: string
+      background: string
+      size: string
+    }>
+  ) => {
+    data.icon = e.detail.name
+    data.iconColor = e.detail.color
+    data.iconBackground = e.detail.background
+    data.iconSize = e.detail.size
   }
 
   async function onConfirm() {
@@ -122,6 +142,10 @@
         const workspaceApp = await workspaceAppStore.add({
           ...workspaceAppData,
           disabled: true,
+          icon: data.icon,
+          iconColor: data.iconColor,
+          iconBackground: data.iconBackground,
+          iconSize: data.iconSize,
         })
 
         const newScreen = await screenStore.save({
@@ -143,6 +167,10 @@
           isDefault: workspaceApp!.isDefault,
           _id: workspaceApp!._id!,
           _rev: workspaceApp!._rev!,
+          icon: data.icon,
+          iconColor: data.iconColor,
+          iconBackground: data.iconBackground,
+          iconSize: data.iconSize,
         })
         notifications.success("App updated successfully")
       }
@@ -209,6 +237,19 @@
       {buildLiveUrl($appStore, data.url, false)}
     </div>
 
+    <div class="icon-field">
+      <Body size="S" color="var(--spectrum-global-color-gray-700)">Icon</Body>
+      <EditableIcon
+        name={data.icon || "browsers"}
+        color={data.iconColor || "var(--color-orange-400)"}
+        background={data.iconBackground || ""}
+        iconSize={data.iconSize || "XL"}
+        size="L"
+        disabled={editingPublishedApp}
+        on:change={updateIcon}
+      />
+    </div>
+
     {#if editingPublishedApp}
       <div class="edit-info">
         <Icon size="M" name="info" />
@@ -232,5 +273,11 @@
   .edit-info {
     display: flex;
     gap: var(--spacing-m);
+  }
+
+  .icon-field {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-l);
   }
 </style>

@@ -11,6 +11,7 @@
   import { initialise } from "@/stores/builder"
   import { appStore } from "@/stores/builder/app"
   import { appsStore } from "@/stores/portal/apps"
+  import { clientAppsStore } from "@/stores/portal/clientApps"
   import { API } from "@/api"
   import { writable } from "svelte/store"
   import { createValidationStore } from "@budibase/frontend-core/src/utils/validation/yup"
@@ -23,6 +24,8 @@
     url: string | undefined
     iconName: string
     iconColor: string
+    iconBackground: string
+    iconSize: string
   }
 
   export let app: any = null // This will be set by the parent component
@@ -32,12 +35,16 @@
   export let appURL: string | undefined = ""
   export let appIconName: string | undefined = ""
   export let appIconColor: string | undefined = ""
+  export let appIconBackground: string | undefined = ""
+  export let appIconSize: string | undefined = ""
 
   export let appMeta: FormValues = {
     url: undefined,
     name: "",
     iconName: "",
     iconColor: "",
+    iconBackground: "",
+    iconSize: "",
   }
 
   export let alignActions = "left"
@@ -55,14 +62,18 @@
 
   $: appName = $appStore.name
   $: appURL = $appStore.url
-  $: appIconName = $appStore.icon?.name
-  $: appIconColor = $appStore.icon?.color
+  $: appIconName = $appStore.appIcon?.name
+  $: appIconColor = $appStore.appIcon?.color
+  $: appIconBackground = $appStore.appIcon?.background
+  $: appIconSize = $appStore.appIcon?.size
 
   $: appMeta = {
     name: appName,
     url: appURL,
     iconName: appIconName || "",
     iconColor: appIconColor || "",
+    iconBackground: appIconBackground || "",
+    iconSize: appIconSize || "",
   }
 
   const initForm = (appMeta: FormValues) => {
@@ -118,10 +129,19 @@
     $values.url = url === "" ? undefined : url
   }
 
-  const updateIcon = (e: CustomEvent<{ name: string; color: string }>) => {
-    const { name, color } = e.detail
+  const updateIcon = (
+    e: CustomEvent<{
+      name: string
+      color: string
+      background: string
+      size: string
+    }>
+  ) => {
+    const { name, color, background, size } = e.detail
     $values.iconColor = color
     $values.iconName = name
+    $values.iconBackground = background
+    $values.iconSize = size
   }
 
   const setupValidation = async () => {
@@ -140,13 +160,15 @@
       await appsStore.save($appStore.appId, {
         name: $values.name?.trim(),
         url: $values.url?.trim(),
-        icon: {
+        appIcon: {
           name: $values.iconName,
           color: $values.iconColor,
+          background: $values.iconBackground,
+          size: $values.iconSize,
         },
       })
 
-      await initialiseApp()
+      await Promise.all([initialiseApp(), clientAppsStore.load()])
       notifications.success("Workspace update successful")
     } catch (error) {
       console.error(error)
@@ -191,6 +213,8 @@
         size="XL"
         name={$values.iconName}
         color={$values.iconColor}
+        background={$values.iconBackground}
+        iconSize={$values.iconSize || "XL"}
         on:change={updateIcon}
         disabled={appDeployed}
       />

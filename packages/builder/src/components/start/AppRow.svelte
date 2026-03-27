@@ -1,22 +1,31 @@
-<script>
+<script lang="ts">
   import { contextMenuStore } from "@/stores/builder"
   import { auth } from "@/stores/portal"
+  import { appsStore } from "@/stores/portal/apps"
+  import { clientAppsStore } from "@/stores/portal/clientApps"
   import { goto as gotoStore } from "@roxi/routify"
-  import { Body, Button, Icon } from "@budibase/bbui"
+  import { Body, Button, Icon, Modal, notifications } from "@budibase/bbui"
   import { UserAvatars } from "@budibase/frontend-core"
   import { sdk } from "@budibase/shared-core"
   import { processStringSync } from "@budibase/string-templates"
   import AppContextMenuModals from "./AppContextMenuModals.svelte"
+  import ChooseIconModal from "./ChooseIconModal.svelte"
   import getAppContextMenuItems from "./getAppContextMenuItems.js"
 
   // Initialize Routify store and derive callable function
   $gotoStore
   $: goto = $gotoStore
 
-  export let app
-  export let lockedAction
+  export let app: any
+  export let lockedAction: any
 
-  let appContextMenuModals
+  let appContextMenuModals: any
+  let iconModal: Modal
+  let selectedIconName = app?.appIcon?.name || "squares-four"
+  let selectedIconColor =
+    app?.appIcon?.color || "var(--spectrum-global-color-gray-700)"
+  let selectedIconBackground = app?.appIcon?.background || ""
+  let selectedIconSize = app?.appIcon?.size || "XL"
 
   $: contextMenuOpen = `${app.appId}-index` === $contextMenuStore.id
   $: editing = app.sessions?.length
@@ -47,7 +56,7 @@
     }
   }
 
-  const openContextMenu = e => {
+  const openContextMenu = (e: MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
 
@@ -64,6 +73,43 @@
       y: e.clientY,
     })
   }
+
+  const openIconModal = (e: MouseEvent) => {
+    e.stopPropagation()
+    selectedIconName = app?.appIcon?.name || "squares-four"
+    selectedIconColor =
+      app?.appIcon?.color || "var(--spectrum-global-color-gray-700)"
+    selectedIconBackground = app?.appIcon?.background || ""
+    selectedIconSize = app?.appIcon?.size || "XL"
+    iconModal.show()
+  }
+
+  const saveIconUpdate = async (
+    e: CustomEvent<{
+      name: string
+      color: string
+      background: string
+      size: string
+    }>
+  ) => {
+    try {
+      const { name, color, background, size } = e.detail
+      await appsStore.save(app.devId, {
+        appIcon: {
+          name,
+          color,
+          background,
+          size,
+        },
+      })
+      await clientAppsStore.load()
+      notifications.success("App icon updated")
+      iconModal.hide()
+    } catch (error) {
+      console.error(error)
+      notifications.error("Error updating app icon")
+    }
+  }
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -77,11 +123,11 @@
   on:contextmenu={openContextMenu}
 >
   <div class="title">
-    <div class="app-icon">
+    <div class="app-icon" on:click={isBuilder ? openIconModal : null}>
       <Icon
         size="L"
-        name={app.icon?.name || "squares-four"}
-        color={app.icon?.color || "var(--spectrum-global-color-gray-700)"}
+        name={app.appIcon?.name || "squares-four"}
+        color={app.appIcon?.color || "var(--spectrum-global-color-gray-700)"}
       />
     </div>
     <div class="name">
@@ -132,6 +178,15 @@
     </div>
   </div>
   <AppContextMenuModals {app} bind:this={appContextMenuModals} />
+  <Modal bind:this={iconModal}>
+    <ChooseIconModal
+      name={selectedIconName}
+      color={selectedIconColor}
+      background={selectedIconBackground}
+      size={selectedIconSize}
+      on:change={saveIconUpdate}
+    />
+  </Modal>
 </div>
 
 <style>
@@ -196,6 +251,20 @@
     justify-content: flex-end;
     align-items: center;
     display: flex;
+  }
+
+  .app-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 150ms ease-out;
+  }
+
+  .app-row:not(.unclickable) .app-icon:hover {
+    background-color: var(--spectrum-global-color-gray-200);
   }
 
   .actions-wrap {

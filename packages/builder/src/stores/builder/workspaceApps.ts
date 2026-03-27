@@ -133,6 +133,10 @@ export class WorkspaceAppStore extends DerivedBudiStore<
       url: workspaceApp.url,
       navigation: workspaceApp.navigation,
       disabled: workspaceApp.disabled,
+      icon: workspaceApp.icon,
+      iconColor: workspaceApp.iconColor,
+      iconBackground: workspaceApp.iconBackground,
+      iconSize: workspaceApp.iconSize,
     }
 
     const updatedWorkspaceApp = await API.workspaceApp.update(safeWorkspaceApp)

@@ -5,6 +5,8 @@
   export let name: string
   export let size: "M" | "L" | "XL" = "M"
   export let color: string
+  export let background: string = ""
+  export let iconSize: string = "XL"
   export let disabled: boolean = false
   export let defaultValue = "squares-four"
 
@@ -33,7 +35,7 @@
 </div>
 
 <Modal bind:this={modal}>
-  <ChooseIconModal {name} {color} on:change />
+  <ChooseIconModal {name} {color} {background} size={iconSize} on:change />
 </Modal>
 
 <style>

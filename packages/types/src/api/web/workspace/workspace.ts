@@ -69,6 +69,12 @@ export interface PublishedWorkspaceData {
   url: string
   prodId: string
   updatedAt?: string
+  appIcon?: {
+    name: string
+    color: string
+    background?: string
+    size?: string
+  }
 }
 
 export interface FetchPublishedAppsResponse {

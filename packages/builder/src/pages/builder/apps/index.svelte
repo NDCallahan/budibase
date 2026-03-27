@@ -178,8 +178,20 @@
                     >
                       <div
                         class="preview"
-                        use:gradient={{ seed: app.name }}
-                      ></div>
+                        use:gradient={{
+                          seed: app.name,
+                          background: app.appIcon?.background,
+                        }}
+                      >
+                        {#if app.appIcon?.name}
+                          <Icon
+                            name={app.appIcon.name}
+                            size={(app.appIcon.size as any) || "XL"}
+                            color={app.appIcon.color ||
+                              "var(--spectrum-global-color-gray-700)"}
+                          />
+                        {/if}
+                      </div>
                       <div class="app-info">
                         <Heading size="XS">{app.name}</Heading>
                         <Body size="S">
@@ -328,8 +340,12 @@
     color: var(--spectrum-global-color-gray-500);
   }
   .preview {
-    height: 40px;
-    width: 60px;
+    min-height: 40px;
+    min-width: 60px;
+    padding: 8px;
     border-radius: var(--border-radius-s);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 </style>

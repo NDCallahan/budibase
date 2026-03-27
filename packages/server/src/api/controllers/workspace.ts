@@ -325,6 +325,14 @@ export async function fetchClientApps(
         name: `${workspaceApp.name}`,
         url: `${workspace.url}${workspaceApp.url || ""}`.replace(/\/$/, ""),
         updatedAt: workspace.updatedAt,
+        appIcon: workspaceApp.icon
+          ? {
+              name: workspaceApp.icon,
+              color: workspaceApp.iconColor || "",
+              background: workspaceApp.iconBackground || "",
+              size: workspaceApp.iconSize || "",
+            }
+          : workspace.appIcon,
       })
     }
   }

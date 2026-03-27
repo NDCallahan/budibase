@@ -51,6 +51,7 @@ export interface AppMetaState {
   revertableVersion?: string
   upgradableVersion?: string
   icon?: WorkspaceIcon
+  appIcon?: WorkspaceIcon
   pwa?: PWAManifest
   scripts: AppScript[]
 }
@@ -122,6 +123,7 @@ export class AppMetaStore extends BudiStore<AppMetaState> {
       upgradableVersion: workspace.upgradableVersion,
       usedPlugins: workspace.usedPlugins || [],
       icon: workspace.icon,
+      appIcon: workspace.appIcon,
       features: {
         ...INITIAL_APP_META_STATE.features,
         ...workspace.features,

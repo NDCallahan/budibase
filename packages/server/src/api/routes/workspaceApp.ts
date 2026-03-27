@@ -10,6 +10,10 @@ const baseSchema = {
     .required()
     .regex(/^\/[\w-]*$/),
   disabled: Joi.boolean().optional(),
+  icon: Joi.string().optional().allow(""),
+  iconColor: Joi.string().optional().allow(""),
+  iconBackground: Joi.string().optional().allow(""),
+  iconSize: Joi.string().optional().allow(""),
 }
 
 const insertSchema = Joi.object({

@@ -115,4 +115,7 @@ export { createNotificationStore, notifications } from "./Stores/notifications"
 // Helpers
 export * as Helpers from "./helpers"
 
+// Phosphor icon list (used by icon pickers)
+export { PhosphorIcons } from "./PhosphorIconPicker/icons"
+
 export type * from "./types"

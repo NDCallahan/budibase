@@ -190,8 +190,8 @@ export const buildHomeRows = ({
       createdAt: app.createdAt ? String(app.createdAt) : undefined,
       resource: app,
       favourite: getFavourite(WorkspaceResource.WORKSPACE_APP, id),
-      icon: getRowIcon("app"),
-      iconColor: getRowIconColor("app"),
+      icon: app.icon || getRowIcon("app"),
+      iconColor: app.iconColor || getRowIconColor("app"),
     }
   })
 
