@@ -736,6 +736,12 @@
     }}
   />
 
+  <Input
+    label="Display label"
+    placeholder="Human-readable name"
+    bind:value={editableColumn.displayName}
+  />
+
   {#if editableColumn.type === FieldType.STRING && editableColumn.constraints.length}
     <Input
       type="number"

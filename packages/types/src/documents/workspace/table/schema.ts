@@ -18,6 +18,8 @@ export interface UIFieldMetadata {
   width?: number
   visible?: boolean
   icon?: string
+  // Human readable label for UI display. Optional so legacy schemas remain valid.
+  displayName?: string
 }
 
 interface BaseRelationshipFieldMetadata
