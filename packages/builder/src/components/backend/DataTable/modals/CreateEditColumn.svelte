@@ -739,8 +739,7 @@
   />
 
   <Input
-    label="Display label"
-    placeholder="Human-readable name"
+    label="Default Column Label"
     bind:value={editableColumn.displayName}
   />
 

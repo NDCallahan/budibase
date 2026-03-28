@@ -88,7 +88,8 @@
       if (!fieldSchema?.autocolumn && !hasCol) {
         newColumns.push({
           name: field,
-          displayName: field,
+          // Use schema displayName if available, otherwise use field name
+          displayName: fieldSchema?.displayName || field,
         })
       }
     })
@@ -138,10 +139,10 @@
                 <Select
                   value={column?.name}
                   placeholder="Column"
-                  options={getRemainingColumnOptions(column?.name)}
+                  options={getRemainingColumnOptions(column.name)}
                   on:change={e => {
                     column.name = e.detail
-                    column.displayName = e.detail
+                    column.displayName = schema[e.detail]?.displayName || e.detail
                   }}
                 />
                 <Input
