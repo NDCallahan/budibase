@@ -35,7 +35,7 @@
   $: options = allowCellEditing
     ? Object.keys(schema || {})
     : enrichedSchemaFields?.map(field => field.name)
-  $: sanitisedValue = getValidColumns(value, options)
+  $: sanitisedValue = getValidColumns(value, options, schema)
   $: updateBoundValue(sanitisedValue)
   $: enrichedSchemaFields = getSchemaFields(schema, $tables.list)
 
@@ -72,7 +72,7 @@
     boundValue = cloneDeep(value)
   }
 
-  const getValidColumns = (columns, options) => {
+  const getValidColumns = (columns, options, schema) => {
     if (!Array.isArray(columns) || !columns.length) {
       return []
     }
@@ -81,7 +81,8 @@
     if (typeof columns[0] === "string") {
       columns = columns.map(col => ({
         name: col,
-        displayName: col,
+        // Use schema displayName if available, otherwise use field name
+        displayName: schema?.[col]?.displayName || col,
       }))
     }
     return columns

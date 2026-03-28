@@ -10,6 +10,7 @@
   export let item
   export let anchor
   export let bindings
+  export let columnDisplayNames = {}
 
   const dispatch = createEventDispatcher()
 
@@ -63,7 +64,11 @@
         <span>{item.field}</span>
       </div>
     </EditComponentPopover>
-    <div class="field-label">{item.label || item.field}</div>
+    <div class="field-label">
+      {item.label ||
+        columnDisplayNames?.[item.field]?.displayName ||
+        item.field}
+    </div>
   </div>
   <div class="list-item-right">
     <Toggle

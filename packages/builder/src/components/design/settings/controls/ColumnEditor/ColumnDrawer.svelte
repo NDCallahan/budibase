@@ -73,7 +73,8 @@
       if (!fieldSchema?.autocolumn && !hasCol) {
         newColumns.push({
           name: field,
-          displayName: field,
+          // Use schema displayName if available, otherwise use field name
+          displayName: fieldSchema?.displayName || field,
         })
       }
     })
@@ -124,7 +125,9 @@
                   bind:value={column.name}
                   placeholder="Column"
                   options={getRemainingColumnOptions(column.name)}
-                  on:change={e => (column.displayName = e.detail)}
+                  on:change={e =>
+                    (column.displayName =
+                      schema[e.detail]?.displayName || e.detail)}
                 />
                 <Input
                   bind:value={column.displayName}

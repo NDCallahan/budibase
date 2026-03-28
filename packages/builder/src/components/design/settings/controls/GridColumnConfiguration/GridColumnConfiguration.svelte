@@ -62,6 +62,7 @@
           item={columns.primary}
           on:change={e => columns.update(e.detail)}
           {bindings}
+          columnDisplayNames={schema}
         />
       </div>
     </div>
@@ -77,6 +78,7 @@
     listType={FieldSetting}
     listTypeProps={{
       bindings,
+      columnDisplayNames: schema,
     }}
   />
 {:else}
