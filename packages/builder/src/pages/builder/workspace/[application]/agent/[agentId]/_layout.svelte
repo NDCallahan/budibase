@@ -70,12 +70,12 @@
       await agentsStore.fetchAgents()
 
       notifications.success(
-        nextLive ? "Agent is now live" : "Agent has been paused"
+        nextLive ? "Agent is now live" : "Agent has been stopped"
       )
     } catch (error) {
       console.error(error)
       notifications.error(
-        nextLive ? "Error setting agent live" : "Error pausing agent"
+        nextLive ? "Error setting agent live" : "Error stopping agent"
       )
     } finally {
       togglingLive = false
@@ -131,7 +131,10 @@
         <Icon
           tooltip="Documentation"
           on:click={() =>
-            window.open("https://docs.budibase.com/docs/agents", "_blank")}
+            window.open(
+              "https://docs.budibase.com/docs/agent-building-101",
+              "_blank"
+            )}
           name="info"
           size="M"
           color="var(--spectrum-global-color-gray-600)"
@@ -140,12 +143,12 @@
       <Button
         primary={!currentAgent?.live}
         secondary={currentAgent?.live}
-        icon={currentAgent?.live ? undefined : "play"}
+        icon={currentAgent?.live ? "stop" : "play"}
         iconColor={currentAgent?.live ? "" : "var(--bb-blue)"}
         iconWeight="fill"
         on:click={toggleAgentLive}
         disabled={togglingLive}
-        >{currentAgent?.live ? "Pause agent" : "Set agent live"}</Button
+        >{currentAgent?.live ? "Stop" : "Set live"}</Button
       >
     </div>
   </div>

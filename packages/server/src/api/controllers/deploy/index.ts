@@ -130,6 +130,32 @@ async function initDeployedApp(prodAppId: string) {
   console.log(
     `Cleared ${count} old CRON/email, enabled ${enabledCount} new CRON/email triggers for app deployment`
   )
+
+  const knowledgeSourceSyncSummary = await context.doInWorkspaceContext(
+    prodAppId,
+    async () => {
+      const agents = await sdk.ai.agents.fetch()
+      const results = await Promise.all(
+        agents.map(agent =>
+          sdk.ai.rag.knowledgeSourceSyncQueue.reconcileAgentJobs(
+            agent,
+            prodAppId
+          )
+        )
+      )
+      return results.reduce(
+        (summary, result) => ({
+          cleared: summary.cleared + result.clearedSchedules,
+          enabled: summary.enabled + result.enabledSchedules,
+        }),
+        { cleared: 0, enabled: 0 }
+      )
+    }
+  )
+  console.log(
+    `Cleared ${knowledgeSourceSyncSummary.cleared} old knowledge-source sync schedules, enabled ${knowledgeSourceSyncSummary.enabled} new knowledge-source sync schedules for app deployment`
+  )
+
   // sync the automations back to the dev DB - since there is now CRON
   // information attached
   await sdk.workspaces.syncWorkspace(dbCore.getDevWorkspaceID(prodAppId), {
@@ -368,7 +394,7 @@ export const publishWorkspaceInternal = async (
             : undefined
 
         if (await backups.isEnabled()) {
-          await backups.triggerAppBackup(prodId, BackupTrigger.PUBLISH, {
+          await backups.triggerWorkspaceBackup(prodId, BackupTrigger.PUBLISH, {
             createdBy: ctx.user._id,
           })
         }
@@ -472,18 +498,32 @@ export const publishWorkspaceInternal = async (
             ? tables.filter(table => tablesToPublish.has(table._id!))
             : tables
         const automationIds = automations.map(auto => auto._id!)
+        const deployedAutomationIds = automations
+          .filter(auto => auto.disabled !== true)
+          .map(auto => auto._id!)
         const workspaceAppIds = workspaceApps.map(app => app._id!)
+        const deployedWorkspaceAppIds = workspaceApps
+          .filter(app => app.disabled !== true)
+          .map(app => app._id!)
         const tableIds = tablesMarkedForPublish.map(table => table._id!)
         const fullMap = [
           ...(automationIds ?? []),
           ...(workspaceAppIds ?? []),
           ...(tableIds ?? []),
         ]
+        const deployedMap = [
+          ...(deployedAutomationIds ?? []),
+          ...(deployedWorkspaceAppIds ?? []),
+          ...(tableIds ?? []),
+        ]
+        const publishedAt = new Date().toISOString()
         appDoc.resourcesPublishedAt = {
           ...prodAppDoc?.resourcesPublishedAt,
-          ...Object.fromEntries(
-            fullMap.map(id => [id, new Date().toISOString()])
-          ),
+          ...Object.fromEntries(fullMap.map(id => [id, publishedAt])),
+        }
+        appDoc.resourcesDeployedAt = {
+          ...prodAppDoc?.resourcesDeployedAt,
+          ...Object.fromEntries(deployedMap.map(id => [id, publishedAt])),
         }
         delete appDoc.automationErrors
         await db.put(appDoc)

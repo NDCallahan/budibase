@@ -2,31 +2,21 @@ import { context, docIds, roles } from "@budibase/backend-core"
 import { DocumentType } from "@budibase/types"
 import type {
   Agent,
+  AgentChannelProvider,
   ChatApp,
   ChatConversation,
   ChatConversationRequest,
   User,
 } from "@budibase/types"
 import type { ModelMessage, ToolSet } from "ai"
-import type { ServerResponse } from "http"
-import {
-  convertToModelMessages,
-  extractReasoningMiddleware,
-  pruneMessages,
-  streamText,
-  wrapLanguageModel,
-} from "ai"
+import { convertToModelMessages, pruneMessages, streamText } from "ai"
 import { quotas } from "@budibase/pro"
 import TestConfiguration from "../utilities/TestConfiguration"
-import {
-  findLatestUserQuestion,
-  prepareChatConversationForSave,
-  truncateTitle,
-  webhookChat,
-} from "../../api/controllers/ai"
 import sdk from "../../sdk"
 import * as agentLogs from "../../sdk/workspace/ai/agentLogs"
-import type { LanguageModelV3, EmbeddingModelV3 } from "@ai-sdk/provider"
+import type { LanguageModelV3 } from "@ai-sdk/provider"
+import { webhookChat } from "../../api/controllers/ai/chatConversations"
+import { MockLanguageModelV3 } from "ai/test"
 
 jest.mock("@budibase/pro", () => {
   const actual = jest.requireActual("@budibase/pro")
@@ -49,10 +39,8 @@ jest.mock("ai", () => {
   return {
     ...actual,
     convertToModelMessages: jest.fn(),
-    extractReasoningMiddleware: jest.fn(),
     pruneMessages: jest.fn(),
     streamText: jest.fn(),
-    wrapLanguageModel: jest.fn(),
   }
 })
 
@@ -86,6 +74,41 @@ const createMockSessionLogIndexer = () => ({
   index: jest.fn().mockResolvedValue(undefined),
 })
 
+const aiActual = jest.requireActual<typeof import("ai")>("ai")
+
+const mockLanguageModelStreamUsage = {
+  inputTokens: {
+    total: 1,
+    noCache: 1,
+    cacheRead: undefined,
+    cacheWrite: undefined,
+  },
+  outputTokens: {
+    total: 2,
+    text: 2,
+    reasoning: undefined,
+  },
+} as const
+
+const createChatTestLanguageModel = () =>
+  new MockLanguageModelV3({
+    doStream: async () => ({
+      stream: aiActual.simulateReadableStream({
+        chunks: [
+          { type: "text-start", id: "text-1" },
+          { type: "text-delta", id: "text-1", delta: "hello" },
+          { type: "text-end", id: "text-1" },
+          {
+            type: "finish",
+            finishReason: { unified: "stop" as const, raw: undefined },
+            logprobs: undefined,
+            usage: mockLanguageModelStreamUsage,
+          },
+        ],
+      }),
+    }),
+  })
+
 describe("chat conversations authorization", () => {
   const config = new TestConfiguration()
   let userA: User
@@ -95,6 +118,7 @@ describe("chat conversations authorization", () => {
   let convoA: ChatConversation
   let convoAAgent2: ChatConversation
   let convoB: ChatConversation
+  let externalChannelConvo: ChatConversation
   let otherAppConvo: ChatConversation
 
   beforeAll(async () => {
@@ -150,6 +174,20 @@ describe("chat conversations authorization", () => {
           title: "user A conversation on agent 2",
           createdAt: now,
         }
+        externalChannelConvo = {
+          _id: docIds.generateChatConversationID(),
+          chatAppId: chatApp._id!,
+          agentId: "agent-1",
+          userId: userA._id!,
+          messages: [],
+          title: "slack conversation",
+          createdAt: now,
+          channel: {
+            provider: "slack" as AgentChannelProvider,
+            channelId: "C123",
+            externalUserId: "external-user-1",
+          },
+        }
         otherChatApp = {
           _id: docIds.generateChatAppID(),
           agents: [{ agentId: "agent-2", isEnabled: true, isDefault: false }],
@@ -169,6 +207,7 @@ describe("chat conversations authorization", () => {
         await db.put(convoA)
         await db.put(convoAAgent2)
         await db.put(convoB)
+        await db.put(externalChannelConvo)
         await db.put(otherChatApp)
         await db.put(otherAppConvo)
       }
@@ -194,6 +233,20 @@ describe("chat conversations authorization", () => {
     expect(res.body).toHaveLength(2)
     expect(res.body.map((chat: ChatConversation) => chat._id)).toEqual(
       expect.arrayContaining([convoA._id, convoAAgent2._id])
+    )
+  })
+
+  it("hides channel conversations from web chat history", async () => {
+    const headers = await headersForUser(userA)
+
+    const res = await config
+      .getRequest()!
+      .get(`/api/chatapps/${chatApp._id}/conversations`)
+      .set(headers)
+
+    expect(res.status).toBe(200)
+    expect(res.body.map((chat: ChatConversation) => chat._id)).not.toContain(
+      externalChannelConvo._id
     )
   })
 
@@ -272,12 +325,38 @@ describe("chat conversations authorization", () => {
     expect(res.body._id).toBe(convoB._id)
   })
 
+  it("blocks access to channel conversations from web chat routes", async () => {
+    const headers = await headersForUser(userA)
+
+    const res = await config
+      .getRequest()!
+      .get(
+        `/api/chatapps/${chatApp._id}/conversations/${externalChannelConvo._id}`
+      )
+      .set(headers)
+
+    expect(res.status).toBe(404)
+  })
+
   it("blocks deleting a conversation from a different chat app", async () => {
     const headers = await headersForUser(userA)
 
     const res = await config
       .getRequest()!
       .delete(`/api/chatapps/${chatApp._id}/conversations/${otherAppConvo._id}`)
+      .set(headers)
+
+    expect(res.status).toBe(404)
+  })
+
+  it("blocks deleting channel conversations from web chat routes", async () => {
+    const headers = await headersForUser(userA)
+
+    const res = await config
+      .getRequest()!
+      .delete(
+        `/api/chatapps/${chatApp._id}/conversations/${externalChannelConvo._id}`
+      )
       .set(headers)
 
     expect(res.status).toBe(404)
@@ -309,7 +388,7 @@ describe("prepareChatConversationForSave", () => {
       updatedAt: "2023-12-31T12:00:00.000Z",
     }
 
-    const result = prepareChatConversationForSave({
+    const result = sdk.ai.chatConversations.prepareChatConversationForSave({
       chatId: existingChat._id!,
       chatAppId: existingChat.chatAppId,
       userId: existingChat.userId!,
@@ -334,7 +413,7 @@ describe("prepareChatConversationForSave", () => {
       messages: [],
     }
 
-    const result = prepareChatConversationForSave({
+    const result = sdk.ai.chatConversations.prepareChatConversationForSave({
       chatId: chat._id!,
       chatAppId: chat.chatAppId,
       userId: chat.userId!,
@@ -390,7 +469,7 @@ describe("prepareChatConversationForSave", () => {
       ],
     }
 
-    const result = prepareChatConversationForSave({
+    const result = sdk.ai.chatConversations.prepareChatConversationForSave({
       chatId: chat._id!,
       chatAppId: chat.chatAppId,
       userId: chat.userId!,
@@ -477,7 +556,7 @@ describe("prepareChatConversationForSave", () => {
       ],
     }
 
-    const result = prepareChatConversationForSave({
+    const result = sdk.ai.chatConversations.prepareChatConversationForSave({
       chatId: chat._id!,
       chatAppId: chat.chatAppId,
       userId: chat.userId!,
@@ -529,14 +608,6 @@ describe("chat conversation transient behavior", () => {
   const agentId = "agent-1"
   let chatApp: ChatApp
   let sessionLogIndexer: ReturnType<typeof createMockSessionLogIndexer>
-
-  const mockMessages: ChatConversationRequest["messages"] = [
-    {
-      id: "message-1",
-      role: "assistant",
-      parts: [{ type: "text", text: "hello" }],
-    },
-  ]
 
   beforeAll(async () => {
     await config.init("chat-conversation-transient")
@@ -594,10 +665,6 @@ describe("chat conversation transient behavior", () => {
       name: "Mock Agent",
       aiconfig: "config-1",
     }
-    const mockModel = {}
-    const mockMiddleware = {} as unknown as ReturnType<
-      typeof extractReasoningMiddleware
-    >
     const tools: ToolSet = {}
 
     ;(
@@ -613,8 +680,7 @@ describe("chat conversation transient behavior", () => {
     ;(
       sdk.ai.llm.createLLM as jest.MockedFunction<typeof sdk.ai.llm.createLLM>
     ).mockResolvedValue({
-      chat: mockModel as LanguageModelV3,
-      embedding: {} as EmbeddingModelV3,
+      chat: createChatTestLanguageModel() as LanguageModelV3,
       providerOptions: jest.fn(),
       uploadFile: jest.fn(),
     })
@@ -622,51 +688,13 @@ describe("chat conversation transient behavior", () => {
       convertToModelMessages as jest.MockedFunction<
         typeof convertToModelMessages
       >
-    ).mockResolvedValue([])
+    ).mockImplementation(aiActual.convertToModelMessages)
     ;(
       pruneMessages as jest.MockedFunction<typeof pruneMessages>
-    ).mockReturnValue([])
+    ).mockImplementation(aiActual.pruneMessages)
     ;(streamText as jest.MockedFunction<typeof streamText>).mockImplementation(
-      () =>
-        ({
-          response: Promise.resolve({
-            id: "gen-test",
-            headers: {
-              "x-litellm-response-cost": "0.0001",
-            },
-          }),
-          usage: Promise.resolve({
-            inputTokens: 0,
-            outputTokens: 0,
-          }),
-          pipeUIMessageStreamToResponse: async (
-            res: ServerResponse,
-            options?: unknown
-          ) => {
-            const finish = (
-              options as {
-                onFinish?: ({
-                  messages,
-                }: {
-                  messages: ChatConversationRequest["messages"]
-                }) => Promise<void> | void
-              }
-            )?.onFinish
-            if (finish) {
-              await finish({ messages: mockMessages })
-            }
-            res.end()
-          },
-        }) as unknown as ReturnType<typeof streamText>
+      aiActual.streamText
     )
-    ;(
-      extractReasoningMiddleware as jest.MockedFunction<
-        typeof extractReasoningMiddleware
-      >
-    ).mockReturnValue(mockMiddleware)
-    ;(
-      wrapLanguageModel as jest.MockedFunction<typeof wrapLanguageModel>
-    ).mockImplementation(({ model }) => model)
   }
 
   it("does not persist transient conversations", async () => {
@@ -737,7 +765,22 @@ describe("chat conversation transient behavior", () => {
         )
         expect(docs.rows.length).toBe(1)
         expect(docs.rows[0].doc?.chatAppId).toBe(chatApp._id)
-        expect(docs.rows[0].doc?.messages).toEqual(mockMessages)
+        const persisted = docs.rows[0].doc?.messages ?? []
+        expect(persisted).toHaveLength(2)
+        expect(persisted[0]).toMatchObject({
+          id: "message-0",
+          role: "user",
+          parts: [{ type: "text", text: "hi" }],
+        })
+        expect(persisted[1]).toMatchObject({
+          role: "assistant",
+          parts: expect.arrayContaining([
+            expect.objectContaining({
+              type: "text",
+              text: "hello",
+            }),
+          ]),
+        })
       }
     )
   })
@@ -843,13 +886,17 @@ describe("chat conversation title helpers", () => {
       ],
     }
 
-    expect(findLatestUserQuestion(chat)).toBe("latest question")
+    expect(sdk.ai.chatConversations.findLatestUserQuestion(chat)).toBe(
+      "latest question"
+    )
   })
 
   it("truncates titles with an ellipsis", () => {
     const longMessage = "a".repeat(130)
 
-    expect(truncateTitle(longMessage)).toBe(`${"a".repeat(117)}...`)
+    expect(sdk.ai.chatConversations.truncateTitle(longMessage)).toBe(
+      `${"a".repeat(117)}...`
+    )
   })
 })
 
@@ -1012,7 +1059,6 @@ describe("Agent chat tool call tracking", () => {
       sdk.ai.llm.createLLM as jest.MockedFunction<typeof sdk.ai.llm.createLLM>
     ).mockResolvedValue({
       chat: {} as any,
-      embedding: {} as any,
       providerOptions: jest.fn().mockReturnValue({}),
       uploadFile: jest.fn(),
     })

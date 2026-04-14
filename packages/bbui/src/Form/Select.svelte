@@ -49,12 +49,11 @@
   export let onOptionMouseleave = () => {}
   export let loading: boolean | undefined = false
   export let searchPlaceholder: string | undefined = undefined
-  export let hideChevron: boolean = false
   export let required: boolean | undefined = false
   export let wrapText: boolean = false
   export let description: string | undefined = undefined
 
-  const dispatch = createEventDispatcher()
+  const dispatch = createEventDispatcher<{ change: V | undefined }>()
   const onChange = (e: CustomEvent<any>) => {
     value = e.detail
     dispatch("change", e.detail)
@@ -91,7 +90,6 @@
     {sort}
     {align}
     {footer}
-    {hideChevron}
     {getOptionLabel}
     {getOptionValue}
     {getOptionIcon}

@@ -1,8 +1,9 @@
-import { context, docIds, objectStore } from "@budibase/backend-core"
+import { context, docIds, HTTPError, objectStore } from "@budibase/backend-core"
 import { KnowledgeBaseFile, KnowledgeBaseFileStatus } from "@budibase/types"
 import { ObjectStoreBuckets } from "../../../../constants"
 import { enqueueRagFileIngestion } from "../rag/queue"
 import { createKnowledgeBaseFile, updateKnowledgeBaseFile } from "./files"
+import { find as findKnowledgeBase } from "./crud"
 
 interface UploadKnowledgeBaseFileInput {
   knowledgeBaseId: string
@@ -11,6 +12,7 @@ interface UploadKnowledgeBaseFileInput {
   size?: number
   buffer: Buffer
   uploadedBy: string
+  externalSourceId?: string
 }
 
 const buildKnowledgeBaseFileObjectStoreKey = (
@@ -25,6 +27,10 @@ export const uploadKnowledgeBaseFile = async (
   input: UploadKnowledgeBaseFileInput
 ): Promise<KnowledgeBaseFile> => {
   const workspaceId = context.getOrThrowWorkspaceId()
+  const knowledgeBase = await findKnowledgeBase(input.knowledgeBaseId)
+  if (!knowledgeBase) {
+    throw new HTTPError("Knowledge base not found", 404)
+  }
 
   const fileId = docIds.generateKnowledgeBaseFileID(input.knowledgeBaseId)
   const objectStoreKey = buildKnowledgeBaseFileObjectStoreKey(
@@ -50,6 +56,7 @@ export const uploadKnowledgeBaseFile = async (
       objectStoreKey,
       size: input.size ?? input.buffer.byteLength,
       uploadedBy: input.uploadedBy,
+      externalSourceId: input.externalSourceId,
     })
 
     try {
@@ -65,7 +72,6 @@ export const uploadKnowledgeBaseFile = async (
       knowledgeBaseFile.status = KnowledgeBaseFileStatus.FAILED
       knowledgeBaseFile.errorMessage =
         error?.message || "Failed to process uploaded file"
-      knowledgeBaseFile.chunkCount = 0
       await updateKnowledgeBaseFile(knowledgeBaseFile)
       throw error
     }
