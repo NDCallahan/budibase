@@ -447,12 +447,14 @@
     class={"size--" + ($sidePanelStore.size || "small")}
   >
     <div class="side-panel-header">
-      <Icon
-        color="var(--spectrum-global-color-gray-600)"
-        name="caret-line-right"
-        hoverable
+      <button
+        type="button"
+        class="side-panel-close-button"
+        aria-label="Close side panel"
         on:click={sidePanelStore.actions.close}
-      />
+      >
+        <Icon color="currentColor" name="caret-line-right" />
+      </button>
     </div>
   </div>
   <div class="modal-container"></div>
@@ -621,6 +623,26 @@
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
+  }
+  .side-panel-close-button {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 999px;
+    border: 1px solid var(--spectrum-alias-border-color);
+    background: var(--spectrum-alias-background-color-default);
+    color: var(--spectrum-alias-text-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+  }
+  .side-panel-close-button:hover {
+    background: var(--spectrum-alias-background-color-secondary);
+  }
+  .side-panel-close-button:focus-visible {
+    outline: 2px solid var(--spectrum-alias-border-color-focus);
+    outline-offset: 2px;
   }
 
   .main-wrapper {
