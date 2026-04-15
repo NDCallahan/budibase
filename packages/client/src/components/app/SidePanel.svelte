@@ -9,6 +9,14 @@
   export let onClose
   export let ignoreClicksOutside
   export let size
+  export let position
+
+  // Register this panel's default position synchronously during setup so that
+  // open() can apply it atomically with contentId. The DOM-level forced reflow
+  // in Layout.svelte now handles the animation bug, but atomic open still needs
+  // the default position for correct initial placement.
+  const _initPos = position === ":default" ? null : position
+  sidePanelStore.actions.registerDefaultPosition($component.id, _initPos)
 
   // Automatically show and hide the side panel when inside the builder.
   // For some unknown reason, svelte reactivity breaks if we reference the
@@ -68,6 +76,28 @@
         }
       } else if ($sidePanelStore.size == null) {
         sidePanelStore.actions.setSize(effectiveSize)
+      }
+    }
+  }
+
+  // Same as size: apply configured side panel position when visible unless an
+  // action explicitly set an override in runtime.
+  //
+  // A position value of ":default" means "inherit the component's configured
+  // position" and should not override it.
+  $: {
+    const effectivePosition = position === ":default" ? null : position
+    // Keep the registry up-to-date whenever the prop changes (e.g. builder
+    // live-edits), so the next open() call uses the current default.
+    sidePanelStore.actions.registerDefaultPosition(
+      $component.id,
+      effectivePosition
+    )
+    if (open && effectivePosition) {
+      if ($builderStore.inBuilder) {
+        if ($sidePanelStore.position !== effectivePosition) {
+          sidePanelStore.actions.setPosition(effectivePosition)
+        }
       }
     }
   }

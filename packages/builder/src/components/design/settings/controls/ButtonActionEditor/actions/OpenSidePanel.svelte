@@ -1,6 +1,7 @@
 <script>
   import { Select, Label } from "@budibase/bbui"
   import { selectedScreen } from "@/stores/builder"
+  import InfoDisplay from "@/pages/builder/workspace/[application]/design/[workspaceAppId]/[screenId]/[componentId]/_components/Component/InfoDisplay.svelte"
   import {
     findAllMatchingComponents,
     findComponent,
@@ -45,6 +46,12 @@
   <Select bind:value={parameters.id} options={sidePanelOptions} />
   <Label small>Size</Label>
   <Select bind:value={parameters.size} options={sizeOptions} />
+  <div class="size-info">
+    <InfoDisplay
+      title="SIDE PANEL SIZE"
+      body="This overrides the side panel size when specified. Set to &quot;Default&quot; to use the size specified in the side panel's settings."
+    />
+  </div>
 </div>
 
 <style>
@@ -56,5 +63,8 @@
     align-items: center;
     max-width: 400px;
     margin: 0 auto;
+  }
+  .size-info {
+    grid-column: 1 / -1;
   }
 </style>

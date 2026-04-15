@@ -464,9 +464,20 @@ const openSidePanelHandler = action => {
     // not force a size in that case.
     const size = action.parameters?.size
     const effectiveSize = size === ":default" ? undefined : size
+
+    // Allow optional position override from the action.
+    // ":default" means inherit the configured side panel setting.
+    const position = action.parameters?.position
+    const effectivePosition = position === ":default" ? undefined : position
+
+    const options = {
+      ...(effectiveSize ? { size: effectiveSize } : {}),
+      ...(effectivePosition ? { position: effectivePosition } : {}),
+    }
+
     sidePanelStore.actions.open(
       id,
-      effectiveSize ? { size: effectiveSize } : undefined
+      Object.keys(options).length ? options : undefined
     )
   }
 }

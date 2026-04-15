@@ -107,6 +107,39 @@
     !$builderStore.inBuilder &&
     $sidePanelStore.open &&
     !$sidePanelStore.ignoreClicksOutside
+  $: sidePanelPosition = $sidePanelStore.position || "right"
+
+  // When the position anchor (left/right) changes, suppress the CSS
+  // transition so the panel snaps to the new off-screen position instantly.
+  // Without this the browser sees a transform change (e.g. translateX(100%)
+  // → translateX(-100%)) and animates through the center of the screen.
+  //
+  // This block runs inside Svelte's update cycle BEFORE the DOM is patched,
+  // so we must toggle the position classes directly on the element first,
+  // force a reflow to commit the snapped position, then re-enable the
+  // transition. Svelte's subsequent DOM patch will see the same classes and
+  // treat them as a no-op, while adding the "open" class triggers the
+  // correct slide-in animation.
+  let sidePanelContainer
+  let prevSidePanelPosition = null
+  $: if (sidePanelContainer && sidePanelPosition !== prevSidePanelPosition) {
+    if (prevSidePanelPosition != null) {
+      sidePanelContainer.style.transition = "none"
+      sidePanelContainer.classList.toggle(
+        "position--left",
+        sidePanelPosition === "left"
+      )
+      sidePanelContainer.classList.toggle(
+        "position--right",
+        sidePanelPosition !== "left"
+      )
+      // Force a synchronous reflow so the browser commits the snapped
+      // position before we re-enable the transition on the next line.
+      const _reflow = sidePanelContainer.offsetHeight
+      sidePanelContainer.style.transition = ""
+    }
+    prevSidePanelPosition = sidePanelPosition
+  }
 
   $: screenId = $builderStore.inBuilder
     ? `${$builderStore.screen?._id}-screen`
@@ -441,19 +474,27 @@
   </div>
   <div
     id="side-panel-container"
+    bind:this={sidePanelContainer}
     class:open={$sidePanelStore.open}
     use:clickOutside={autoCloseSidePanel ? sidePanelStore.actions.close : null}
     class:builder={$builderStore.inBuilder}
     class={"size--" + ($sidePanelStore.size || "small")}
+    class:position--left={sidePanelPosition === "left"}
+    class:position--right={sidePanelPosition !== "left"}
   >
-    <div class="side-panel-header">
+    <div class="side-panel-header" class:left={sidePanelPosition === "left"}>
       <button
         type="button"
         class="side-panel-close-button"
         aria-label="Close side panel"
         on:click={sidePanelStore.actions.close}
       >
-        <Icon color="currentColor" name="caret-line-right" />
+        <Icon
+          color="currentColor"
+          name={sidePanelPosition === "left"
+            ? "caret-line-left"
+            : "caret-line-right"}
+        />
       </button>
     </div>
   </div>
@@ -588,9 +629,17 @@
     position: absolute;
     /* default width matches modal medium */
     width: 600px;
-    right: 0;
-    transform: translateX(100%);
     height: 100%;
+  }
+  #side-panel-container.position--right {
+    right: 0;
+    left: auto;
+    transform: translateX(100%);
+  }
+  #side-panel-container.position--left {
+    left: 0;
+    right: auto;
+    transform: translateX(-100%);
   }
   /* Side panel size variants */
   #side-panel-container.size--small {
@@ -623,6 +672,9 @@
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
+  }
+  .side-panel-header.left {
+    justify-content: flex-start;
   }
   .side-panel-close-button {
     width: 32px;

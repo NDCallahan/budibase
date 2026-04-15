@@ -8143,11 +8143,6 @@
         "defaultValue": false
       },
       {
-        "type": "event",
-        "key": "onClose",
-        "label": "On close"
-      },
-      {
         "type": "select",
         "label": "Size",
         "key": "size",
@@ -8158,6 +8153,21 @@
           { "label": "Large", "value": "large" },
           { "label": "Fullscreen", "value": "fullscreen" }
         ]
+      },
+      {
+        "type": "select",
+        "label": "Position",
+        "key": "position",
+        "defaultValue": "right",
+        "options": [
+          { "label": "Right", "value": "right" },
+          { "label": "Left", "value": "left" }
+        ]
+      },
+      {
+        "type": "event",
+        "key": "onClose",
+        "label": "On close"
       }
     ]
   },
