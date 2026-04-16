@@ -235,6 +235,7 @@
   <ClipboardHandler />
   <KeyboardManager />
   {#if $loaded}
+    <slot name="reorder-columns" />
     <slot />
   {/if}
 </div>

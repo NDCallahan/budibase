@@ -24,6 +24,7 @@
   import GridManageAccessButton from "@/components/backend/DataTable/buttons/grid/GridManageAccessButton.svelte"
   import GridRelationshipButton from "@/components/backend/DataTable/buttons/grid/GridRelationshipButton.svelte"
   import GridEditColumnModal from "@/components/backend/DataTable/modals/grid/GridEditColumnModal.svelte"
+  import GridReorderColumnsModal from "@/components/backend/DataTable/modals/grid/GridReorderColumnsModal.svelte"
   import GridUsersTableButton from "@/components/backend/DataTable/buttons/grid/GridUsersTableButton.svelte"
   import GridGenerateButton from "@/components/backend/DataTable/buttons/grid/GridGenerateButton.svelte"
   import GridScreensButton from "@/components/backend/DataTable/buttons/grid/GridScreensButton.svelte"
@@ -393,6 +394,9 @@
         <!-- Content for editing columns -->
         <svelte:fragment slot="edit-column">
           <GridEditColumnModal />
+        </svelte:fragment>
+        <svelte:fragment slot="reorder-columns">
+          <GridReorderColumnsModal />
         </svelte:fragment>
         <svelte:fragment slot="add-column">
           <GridAddColumnModal />

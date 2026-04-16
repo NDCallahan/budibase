@@ -175,6 +175,11 @@
     open = false
   }
 
+  const openReorderModal = () => {
+    dispatch("reorder-columns")
+    open = false
+  }
+
   const makeDisplayColumn = () => {
     datasource.actions.changePrimaryDisplay(column.name)
     open = false
@@ -371,6 +376,13 @@
         {#if $config.canEditColumns}
           <MenuItem icon="pencil" on:click={editColumn} disabled={!editable}>
             Edit column
+          </MenuItem>
+          <MenuItem
+            disabled={!$config.canEditColumns}
+            icon="dots-nine"
+            on:click={openReorderModal}
+          >
+            Reorder columns in modal
           </MenuItem>
           <MenuItem icon="copy" on:click={duplicateColumn}>
             Duplicate column
