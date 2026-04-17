@@ -171,6 +171,11 @@
                 // Component configuration
                 componentType: setting.componentType,
                 wide: setting.wide,
+
+                // InfoDisplay settings
+                icon: setting.icon,
+                title: setting.title,
+                body: setting.body,
               }}
               {bindings}
               {componentBindings}
