@@ -48,15 +48,11 @@ const getResizeActions = ({
       e.preventDefault()
       if (!element || startProperty == null || startPosition == null) return
 
-<<<<<<< HEAD
+      // Apply direction multiplier so right-side panels can shrink when dragging left
       const change = (e[mouseCoordinate] - startPosition) * directionMultiplier
-      const newValue = startProperty + change
-=======
-      const change = e[mouseCoordinate] - startPosition
       const rawValue = startProperty + change
       const maxValue = getMaxValue ? getMaxValue() : Infinity
       const newValue = Math.min(maxValue, rawValue)
->>>>>>> c8cc2d0491 (pop out functionality for properties panel, allowing it to be resized to the full height of the screen and up to 350px wide (to prevent it from taking up the entire detached workspace when both panels are detached). This involved adding a resize listener in the detached properties panel to track the window width and passing that as a prop to the LeftPanel component to set its maxWidth. The pop out function was also updated to set the initial width of the detached window to 650px to better accommodate the properties panel when both panels are detached.)
       element.style[elementDimension] = `${newValue}px`
     }
 
@@ -90,17 +86,15 @@ const getResizeActions = ({
       }
     }
 
-    const handleMouseMove = (e: MouseEvent) => {
-      // Prevent highlighting while dragging
-      e.preventDefault()
-      if (!element || startProperty == null || startPosition == null) return
-
-      const change = e[mouseCoordinate] - startPosition
-      const rawValue = startProperty + change
-      const maxValue = getMaxValue ? getMaxValue() : Infinity
-      const newValue = Math.min(maxValue, rawValue)
-      element.style[elementDimension] = `${newValue}px`
-    }
+    const handleMouseDown = (e: MouseEvent) => {
+      if (e.detail > 1) {
+        // e.detail is the number of rapid clicks, so e.detail = 2 is
+        // a double click. We want to prevent default behaviour in
+        // this case as it highlights nearby selectable elements, which
+        // then interferes with the resizing mousemove.
+        // Putting this on the double click handler doesn't seem to
+        // work, so it must go here.
+        e.preventDefault()
       }
 
       const target = e.target as HTMLElement
@@ -170,12 +164,18 @@ export const getHorizontalResizeActions = (
   initialValue?: number,
   setValue?: (value: number) => void,
   onResizeStart?: () => void,
-<<<<<<< HEAD
+  // Backwards-compatible fourth parameter: either getMaxValue (function) or panelPosition (string)
+  getMaxValueOrPanelPosition?: (() => number) | "left" | "right",
   panelPosition: "left" | "right" = "left"
-=======
-  getMaxValue?: () => number
->>>>>>> c8cc2d0491 (pop out functionality for properties panel, allowing it to be resized to the full height of the screen and up to 350px wide (to prevent it from taking up the entire detached workspace when both panels are detached). This involved adding a resize listener in the detached properties panel to track the window width and passing that as a prop to the LeftPanel component to set its maxWidth. The pop out function was also updated to set the initial width of the detached window to 650px to better accommodate the properties panel when both panels are detached.)
 ) => {
+  let getMaxValue: (() => number) | undefined
+  // If caller passed panelPosition as the 4th arg (old signature), handle it
+  if (typeof getMaxValueOrPanelPosition === "string") {
+    panelPosition = getMaxValueOrPanelPosition
+  } else if (typeof getMaxValueOrPanelPosition === "function") {
+    getMaxValue = getMaxValueOrPanelPosition
+  }
+
   return getResizeActions({
     elementDimension: "width",
     mouseCoordinate: "pageX",
