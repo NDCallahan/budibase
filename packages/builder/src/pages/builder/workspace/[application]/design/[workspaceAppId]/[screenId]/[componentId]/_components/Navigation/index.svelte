@@ -6,7 +6,11 @@
 
   const togglePropertiesPanel = getContext("togglePropertiesPanel")
   const propertiesPanelPinned = getContext("propertiesPanelPinned")
+  const isPanelPopped = getContext("isPanelPopped")
+  const popInPanel = getContext("popInPanel")
+  const popOutDetachedPanel = getContext("popOutDetachedPanel")
   $: closeTooltip = $propertiesPanelPinned ? "Collapse panel" : "Pin panel"
+  $: isPopped = !!isPanelPopped && !!$isPanelPopped
   import {
     Toggle,
     DetailSummary,
@@ -21,7 +25,10 @@
     screenStore,
     componentStore,
     navigationStore as nav,
+    workspaceAppStore,
+    appStore,
   } from "@/stores/builder"
+  import { notifyParent } from "@/helpers/detachedPanelBridge"
   import { DefaultAppTheme } from "@/constants"
   import PropertyControl from "@/components/design/settings/controls/PropertyControl.svelte"
   import BarButtonList from "@/components/design/settings/controls/BarButtonList.svelte"
@@ -83,6 +90,10 @@
       notifications.error("Error updating navigation settings")
     }
   }
+
+  const handlePopOut = () => {
+    popOutDetachedPanel?.("properties")
+  }
 </script>
 
 <Panel
@@ -94,6 +105,12 @@
   closeButtonIcon="sidebar-simple"
   closeButtonTooltip={closeTooltip}
   onClickCloseButton={togglePropertiesPanel}
+  showPopOutButton={true}
+  popOutButtonIcon={isPopped ? "arrow-square-in" : "arrow-square-out"}
+  popOutButtonTooltip={isPopped
+    ? "Pop back into panel"
+    : "Pop out to new window"}
+  onClickPopOutButton={isPopped ? popInPanel : handlePopOut}
 >
   <DetailSummary name="General" initiallyShow collapsible={false}>
     <PropertyControl

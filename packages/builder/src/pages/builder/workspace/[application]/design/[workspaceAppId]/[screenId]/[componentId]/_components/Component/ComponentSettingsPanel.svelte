@@ -5,6 +5,8 @@
     selectedScreen,
     componentStore,
     selectedComponent,
+    workspaceAppStore,
+    appStore,
   } from "@/stores/builder"
   import ComponentSettingsSection from "./ComponentSettingsSection.svelte"
   import DesignSection from "./DesignSection.svelte"
@@ -19,17 +21,35 @@
   import { capitalise } from "@/helpers"
   import { builderStore } from "@/stores/builder"
   import { getContext } from "svelte"
+  import { isDetachedPanel, notifyParent } from "@/helpers/detachedPanelBridge"
 
   const togglePropertiesPanel = getContext("togglePropertiesPanel")
   const propertiesPanelPinned = getContext("propertiesPanelPinned")
+  const isPanelPopped = getContext("isPanelPopped")
+  const popInPanel = getContext("popInPanel")
+  const popOutDetachedPanel = getContext("popOutDetachedPanel")
   $: closeTooltip = $propertiesPanelPinned ? "Collapse panel" : "Pin panel"
+  $: isPopped = !!isPanelPopped && !!$isPanelPopped
 
   const onUpdateName = async value => {
     try {
       await componentStore.updateSetting("_instanceName", value)
+      // Notify parent window if we're in a detached panel
+      if (isDetachedPanel()) {
+        notifyParent({
+          type: "COMPONENT_SETTING_UPDATED",
+          componentId: $selectedComponent?._id,
+          key: "_instanceName",
+          value: value,
+        })
+      }
     } catch (error) {
       notifications.error("Error updating component name")
     }
+  }
+
+  const handlePopOut = () => {
+    popOutDetachedPanel?.("properties")
   }
 
   $: componentInstance = $selectedComponent
@@ -79,6 +99,12 @@
       closeButtonIcon="sidebar-simple"
       closeButtonTooltip={closeTooltip}
       onClickCloseButton={togglePropertiesPanel}
+      showPopOutButton={true}
+      popOutButtonIcon={isPopped ? "arrow-square-in" : "arrow-square-out"}
+      popOutButtonTooltip={isPopped
+        ? "Pop back into panel"
+        : "Pop out to new window"}
+      onClickPopOutButton={isPopped ? popInPanel : handlePopOut}
     >
       <span class="panel-title-content" slot="panel-title-content">
         <input

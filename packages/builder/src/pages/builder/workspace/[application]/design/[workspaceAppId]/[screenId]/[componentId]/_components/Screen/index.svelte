@@ -7,7 +7,15 @@
 
   const togglePropertiesPanel = getContext("togglePropertiesPanel")
   const propertiesPanelPinned = getContext("propertiesPanelPinned")
+  const isPanelPopped = getContext("isPanelPopped")
+  const popInPanel = getContext("popInPanel")
+  const popOutDetachedPanel = getContext("popOutDetachedPanel")
   $: closeTooltip = $propertiesPanelPinned ? "Collapse panel" : "Pin panel"
+  $: isPopped = !!isPanelPopped && !!$isPanelPopped
+
+  const handlePopOut = () => {
+    popOutDetachedPanel?.("properties")
+  }
 </script>
 
 {#if $selectedScreen}
@@ -20,6 +28,12 @@
     closeButtonIcon="sidebar-simple"
     closeButtonTooltip={closeTooltip}
     onClickCloseButton={togglePropertiesPanel}
+    showPopOutButton={true}
+    popOutButtonIcon={isPopped ? "arrow-square-in" : "arrow-square-out"}
+    popOutButtonTooltip={isPopped
+      ? "Pop back into panel"
+      : "Pop out to new window"}
+    onClickPopOutButton={isPopped ? popInPanel : handlePopOut}
   >
     <Layout gap="XS" paddingX="XL" paddingY="XL">
       <GeneralPanel />

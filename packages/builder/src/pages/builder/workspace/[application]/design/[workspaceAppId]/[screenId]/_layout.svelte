@@ -7,8 +7,12 @@
     selectedScreen,
     workspaceAppStore,
     builderStore,
+    componentStore,
+    appStore,
   } from "@/stores/builder"
-  import { onDestroy } from "svelte"
+  import { onDestroy, onMount, setContext } from "svelte"
+  import { writable, get } from "svelte/store"
+  import { notifyDetachedPanel } from "@/helpers/detachedPanelBridge"
   import LeftPanel from "./_components/LeftPanel.svelte"
   import ScreenPanel from "./_components/ScreenPanel.svelte"
   import PropertiesPanel from "./_components/PropertiesPanel.svelte"
@@ -47,7 +51,104 @@
     store: screenStore,
   })
 
+  // Shared detached window management
+  const DETACHED_WINDOW_TARGET = "budibase-detached-panels"
+  const detachedWindowStore = writable<Window | null>(null)
+  const detachedPanelsStore = writable<Set<string>>(new Set())
+
+  const handleDetachedMessage = (e: MessageEvent) => {
+    if (e.origin !== window.location.origin) return
+    if (e.data.type === "DETACHED_PANEL_READY") {
+      detachedWindowStore.set(e.source as Window)
+    } else if (e.data.type === "DETACHED_PANEL_CLOSED") {
+      detachedWindowStore.set(null)
+      detachedPanelsStore.set(new Set())
+    } else if (e.data.type === "PANEL_POPPED_IN") {
+      detachedPanelsStore.update(s => {
+        const next = new Set(s)
+        next.delete(e.data.panel)
+        return next
+      })
+    } else if (e.data.type === "SELECT_SCREEN") {
+      screenStore.select(e.data.screenId)
+    }
+  }
+
+  onMount(() => {
+    window.addEventListener("message", handleDetachedMessage)
+  })
+
+  // Sync component/screen selection to detached window
+  $: if ($detachedWindowStore && !$detachedWindowStore.closed) {
+    notifyDetachedPanel($detachedWindowStore, {
+      type: "SYNC_COMPONENT",
+      componentId: $componentStore.selectedComponentId,
+      screenId: $selectedScreen?._id,
+    })
+  }
+
+  const popOutDetachedPanel = (panelName: string) => {
+    const currentDetachedWindow = get(detachedWindowStore)
+    if (currentDetachedWindow && !currentDetachedWindow.closed) {
+      currentDetachedWindow.focus() // <-- bring window to front if already open
+      notifyDetachedPanel(currentDetachedWindow, {
+        type: "ADD_PANEL",
+        panel: panelName,
+      })
+    } else {
+      const urlAppId = get(appStore).appId
+      const urlWorkspaceAppId = get(workspaceAppStore).selectedWorkspaceApp?._id
+      const urlComponentId = get(componentStore).selectedComponentId
+      const urlScreenId = get(selectedScreen)?._id
+      const currentPanels = get(detachedPanelsStore)
+      const newPanels = new Set([...currentPanels, panelName])
+
+      const params = new URLSearchParams()
+      if (urlAppId) params.set("appId", urlAppId)
+      if (urlComponentId) params.set("componentId", urlComponentId)
+      if (urlScreenId) params.set("screenId", urlScreenId)
+      if (urlWorkspaceAppId) params.set("workspaceAppId", urlWorkspaceAppId)
+      params.set("panels", Array.from(newPanels).join(","))
+
+      window.open(
+        `/builder/workspace/detached-properties?${params}`,
+        DETACHED_WINDOW_TARGET,
+        `width=650,height=${screen.availHeight},top=0,resizable=yes,toolbar=no,menubar=no`      )
+    }
+    detachedPanelsStore.update(s => new Set([...s, panelName]))
+  }
+
+  const popInDetachedPanel = (panelName: string) => {
+    detachedPanelsStore.update(s => {
+      const next = new Set(s)
+      next.delete(panelName)
+      return next
+    })
+    const currentDetachedWindow = get(detachedWindowStore)
+    if (currentDetachedWindow && !currentDetachedWindow.closed) {
+      const remaining = get(detachedPanelsStore)
+      if (remaining.size === 0) {
+        currentDetachedWindow.close()
+        detachedWindowStore.set(null)
+      } else {
+        notifyDetachedPanel(currentDetachedWindow, {
+          type: "REMOVE_PANEL",
+          panel: panelName,
+        })
+      }
+    }
+  }
+
+  setContext("detachedPanels", detachedPanelsStore)
+  setContext("popOutDetachedPanel", popOutDetachedPanel)
+  setContext("popInDetachedPanel", popInDetachedPanel)
+
   onDestroy(() => {
+    window.removeEventListener("message", handleDetachedMessage)
+    const currentDetachedWindow = get(detachedWindowStore)
+    if (currentDetachedWindow && !currentDetachedWindow.closed) {
+      currentDetachedWindow.close()
+    }
     stopSyncing?.()
   })
 </script>

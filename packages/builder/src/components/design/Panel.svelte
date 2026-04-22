@@ -7,9 +7,11 @@
   export let showAddButton: boolean | undefined = false
   export let showBackButton: boolean | undefined = false
   export let showCloseButton: boolean | undefined = false
+  export let showPopOutButton: boolean | undefined = false
   export let onClickAddButton: () => void = () => {}
   export let onClickBackButton: () => void = () => {}
   export let onClickCloseButton: () => void = () => {}
+  export let onClickPopOutButton: () => void = () => {}
   export let borderLeft: boolean | undefined = false
   export let borderRight: boolean | undefined = false
   export let borderBottomHeader: boolean | undefined = true
@@ -17,6 +19,8 @@
   export let extraWide: boolean | undefined = false
   export let closeButtonIcon: string | undefined = "Close"
   export let closeButtonTooltip: string | undefined = undefined
+  export let popOutButtonIcon: string | undefined = "arrow-square-out"
+  export let popOutButtonTooltip: string | undefined = "Pop out to new window"
   export let noHeaderBorder: boolean | undefined = false
   export let titleCSS: boolean | undefined = true
   export let customWidth: number | undefined = undefined
@@ -80,6 +84,18 @@
         <div class="add-button" on:click={onClickAddButton}>
           <Icon name="plus" />
         </div>
+      {/if}
+      {#if showPopOutButton}
+        <span class="icon-button">
+          <Icon
+            name={popOutButtonIcon}
+            hoverable
+            tooltip={popOutButtonTooltip}
+            tooltipPosition={TooltipPosition.Left}
+            tooltipType={TooltipType.Info}
+            on:click={onClickPopOutButton}
+          />
+        </span>
       {/if}
       {#if showCloseButton}
         <span class="icon-rotated-close">
@@ -211,5 +227,11 @@
     align-items: center;
     justify-content: center;
     transform: scaleX(-1);
+  }
+
+  .icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 </style>

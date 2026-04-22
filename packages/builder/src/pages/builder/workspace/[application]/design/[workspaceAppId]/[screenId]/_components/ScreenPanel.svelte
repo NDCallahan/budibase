@@ -1,7 +1,8 @@
-<script>
-  import { onMount, setContext } from "svelte"
+<script lang="ts">
+  import { onMount, setContext, getContext } from "svelte"
   import { writable } from "svelte/store"
   import { Icon } from "@budibase/bbui"
+  import type { Writable } from "svelte/store"
 
   const STORAGE_KEY = "design-screens-panel-pinned"
 
@@ -10,6 +11,10 @@
 
   const pinnedStore = writable(true)
   $: pinnedStore.set(pinned)
+
+  // Read shared detached state from _layout.svelte
+  const detachedPanels = getContext<Writable<Set<string>>>("detachedPanels")
+  $: screensIsPopped = detachedPanels ? $detachedPanels.has("screens") : false
 
   $: open = pinned || hovered
 
@@ -39,22 +44,24 @@
     hovered = false
   }}
 >
-  <div class="panel" class:open>
+  <div class="panel" class:open={open && !screensIsPopped}>
     <div class="content">
       <slot />
     </div>
   </div>
   <button
     class="reopen-btn"
-    class:hidden={open}
+    class:hidden={open || screensIsPopped}
     on:click={toggle}
     title="Pin panel open"
   >
-    <Icon
-      name="sidebar-simple"
-      size="M"
-      color="var(--spectrum-global-color-gray-700)"
-    />
+    <span class="icon-rotated" aria-hidden="true">
+      <Icon
+        name="sidebar-simple"
+        size="M"
+        color="var(--spectrum-global-color-gray-700)"
+      />
+    </span>
     <span class="reopen-label">Screens</span>
   </button>
 </div>
@@ -125,5 +132,13 @@
     flex-direction: row;
     align-items: stretch;
     min-width: 0;
+  }
+
+  /* Mirror the reopen icon horizontally. */
+  .icon-rotated {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transform: scaleX(-1);
   }
 </style>

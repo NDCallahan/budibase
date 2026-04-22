@@ -13,6 +13,14 @@
   const screenPanelPinned = getContext<Writable<boolean>>("screenPanelPinned")
   $: collapseTooltip = $screenPanelPinned ? "Collapse panel" : "Pin panel"
 
+  const detachedPanels = getContext<Writable<Set<string>>>("detachedPanels")
+  const popOutDetachedPanel = getContext<(panel: string) => void>(
+    "popOutDetachedPanel"
+  )
+  const popInDetachedPanel =
+    getContext<(panel: string) => void>("popInDetachedPanel")
+  $: screensIsPopped = detachedPanels ? $detachedPanels.has("screens") : false
+
   const [resizable, resizableHandle] = getVerticalResizeActions()
 
   let searching = false
@@ -58,16 +66,39 @@
       bind:search={searching}
       onAdd={() => newScreenModal?.open?.()}
     >
-      <button slot="right" class="collapse-btn" on:click={toggleScreenPanel}>
-        <Icon
-          name="sidebar-simple"
-          size="S"
-          hoverable
-          tooltip={collapseTooltip}
-          tooltipPosition={TooltipPosition.Left}
-          tooltipType={TooltipType.Info}
-        />
-      </button>
+      <div slot="right" class="header-actions">
+        <button
+          class="icon-btn"
+          on:click={() =>
+            screensIsPopped
+              ? popInDetachedPanel?.("screens")
+              : popOutDetachedPanel?.("screens")}
+          title={screensIsPopped
+            ? "Pop back into panel"
+            : "Pop out to new window"}
+        >
+          <Icon
+            name={screensIsPopped ? "arrow-square-in" : "arrow-square-out"}
+            size="M"
+            hoverable
+            tooltip={screensIsPopped
+              ? "Pop back into panel"
+              : "Pop out to new window"}
+            tooltipPosition={TooltipPosition.Left}
+            tooltipType={TooltipType.Info}
+          />
+        </button>
+        <button class="collapse-btn" on:click={toggleScreenPanel}>
+          <Icon
+            name="sidebar-simple"
+            size="M"
+            hoverable
+            tooltip={collapseTooltip}
+            tooltipPosition={TooltipPosition.Left}
+            tooltipType={TooltipType.Info}
+          />
+        </button>
+      </div>
     </NavHeader>
   </div>
   <div on:scroll={handleScroll} bind:this={screensContainer} class="content">
@@ -95,19 +126,30 @@
 <NewScreenModal bind:this={newScreenModal} {workspaceAppId} />
 
 <style>
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-s);
+  }
+  .icon-btn,
   .collapse-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
     border: none;
     background: transparent;
     cursor: pointer;
     border-radius: 4px;
     color: var(--spectrum-global-color-gray-700);
     padding: 0;
+    margin: 0;
+    line-height: 1;
+    vertical-align: middle;
+    transition: background 130ms ease-out;
   }
+  .icon-btn:hover,
   .collapse-btn:hover {
     background: var(--spectrum-global-color-gray-200);
   }

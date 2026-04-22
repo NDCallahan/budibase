@@ -7,7 +7,14 @@
   import BindingsPanel from "./BindingsPanel.svelte"
   import ComponentKeyHandler from "./ComponentKeyHandler.svelte"
 
-  const [resizable, resizableHandle] = getHorizontalResizeActions()
+  export let maxWidth: number | undefined = undefined
+
+  const [resizable, resizableHandle] = getHorizontalResizeActions(
+    undefined,
+    undefined,
+    undefined,
+    () => maxWidth ?? Infinity
+  )
 
   const Tabs = {
     Components: "Components",

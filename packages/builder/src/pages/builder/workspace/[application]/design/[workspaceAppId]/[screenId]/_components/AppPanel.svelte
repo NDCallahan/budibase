@@ -229,7 +229,7 @@
   .actions {
     display: flex;
     flex-direction: row;
-    gap: 2px;
+    gap: var(--spacing-s);
     align-items: center;
   }
 </style>

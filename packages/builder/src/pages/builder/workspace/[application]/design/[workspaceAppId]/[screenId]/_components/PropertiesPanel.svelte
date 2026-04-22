@@ -1,41 +1,43 @@
-<script>
-  import { onMount, setContext } from "svelte"
-  import { writable } from "svelte/store"
+<script lang="ts">
+  import { onMount, setContext, getContext } from "svelte"
+  import { writable, derived } from "svelte/store"
   import { Icon } from "@budibase/bbui"
   import { componentStore, selectedScreen } from "@/stores/builder"
+  import type { Writable } from "svelte/store"
 
   const STORAGE_KEY = "design-properties-panel-pinned"
 
   let pinned = true
   let hovered = false
+  let manuallyClosed = false
+  let lastComponentId: string | undefined
 
   const pinnedStore = writable(true)
   $: pinnedStore.set(pinned)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  // Auto-open when a component is selected.
-=======
-  // Auto-open when a component is selected (excluding only the screen background)
-  // Screen component has ID like "screenId-screen", but navigation "screenId-navigation" should open the panel
->>>>>>> da8465237c (feat: panel pin/collapse UX improvements and nginx custom config)
-=======
-  // Auto-open when a component is selected.
->>>>>>> 3d2b659dbc (fix:corrected screen properties to open when clicked on)
+  // Read shared detached window state from _layout.svelte
+  const detachedPanels = getContext<Writable<Set<string>>>("detachedPanels")
+  const popInDetachedPanel = getContext<(panel: string) => void>(
+    "popInDetachedPanel"
+  )
+
+  $: propertiesIsPopped = detachedPanels ? $detachedPanels.has("properties") : false
+
+  // Auto-open when a component is selected, but respect manual close.
   $: active = !!(
     $componentStore.selectedComponentId &&
     $selectedScreen?._id &&
     $componentStore.selectedComponentId !== `${$selectedScreen._id}-screen`
   )
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-  // Open when pinned, hovered, or a component is selected
->>>>>>> da8465237c (feat: panel pin/collapse UX improvements and nginx custom config)
-=======
->>>>>>> 3d2b659dbc (fix:corrected screen properties to open when clicked on)
-  $: open = pinned || hovered || active
+  // Clear manuallyClosed when the selected component changes
+  $: if ($componentStore.selectedComponentId !== lastComponentId) {
+    lastComponentId = $componentStore.selectedComponentId
+    manuallyClosed = false
+  }
+
+  $: open = pinned || hovered || (active && !manuallyClosed)
+  $: isPopped = propertiesIsPopped
 
   onMount(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -46,11 +48,25 @@
 
   const toggle = () => {
     pinned = !pinned
+    if (!pinned) {
+      manuallyClosed = true
+    } else {
+      manuallyClosed = false
+    }
     localStorage.setItem(STORAGE_KEY, pinned.toString())
+  }
+
+  const popIn = () => {
+    popInDetachedPanel?.("properties")
   }
 
   setContext("togglePropertiesPanel", toggle)
   setContext("propertiesPanelPinned", pinnedStore)
+  setContext(
+    "isPanelPopped",
+    detachedPanels ? derived(detachedPanels, p => p.has("properties")) : writable(false)
+  )
+  setContext("popInPanel", popIn)
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -65,7 +81,7 @@
 >
   <button
     class="reopen-btn"
-    class:hidden={open}
+    class:hidden={open || isPopped}
     on:click={toggle}
     title="Pin panel open"
   >
@@ -78,7 +94,7 @@
     </span>
     <span class="reopen-label">Component Properties</span>
   </button>
-  <div class="panel" class:open>
+  <div class="panel" class:open={open && !isPopped}>
     <div class="content">
       <slot />
     </div>
@@ -86,22 +102,28 @@
 </div>
 
 <style>
-  .content {
-    flex: 1 1 auto;
-    height: 100%;
+  .wrapper {
     display: flex;
     flex-direction: row;
     align-items: stretch;
-    min-width: 0;
+    height: 100%;
   }
-
-  /* Mirror the reopen icon horizontally. */
-  .icon-rotated {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transform: scaleX(-1);
+  .panel {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    height: 100%;
+    width: 0;
+    background: var(--background);
+    transition: width 160ms cubic-bezier(0.22, 1, 0.36, 1);
+    overflow: hidden;
   }
+  .panel.open {
+    width: 310px;
+    border-left: 1px solid var(--spectrum-global-color-gray-200);
+  }
+  .reopen-btn {
+    flex: 0 0 36px;
     width: 36px;
     height: 100%;
     display: flex;
@@ -146,10 +168,6 @@
     align-items: stretch;
     min-width: 0;
   }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 92853cfec2 (mirrored icon since panel collapses to the right.)
 
   /* Mirror the reopen icon horizontally. */
   .icon-rotated {
@@ -158,9 +176,4 @@
     justify-content: center;
     transform: scaleX(-1);
   }
-<<<<<<< HEAD
-=======
->>>>>>> da8465237c (feat: panel pin/collapse UX improvements and nginx custom config)
-=======
->>>>>>> 92853cfec2 (mirrored icon since panel collapses to the right.)
 </style>
