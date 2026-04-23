@@ -1,20 +1,10 @@
 <script lang="ts">
   import ScreenList from "./ScreenList/index.svelte"
   import ComponentList from "./ComponentList/index.svelte"
-  import { getHorizontalResizeActions } from "@/components/common/resizable"
   import { ActionButton } from "@budibase/bbui"
   import StatePanel from "./StatePanel.svelte"
   import BindingsPanel from "./BindingsPanel.svelte"
   import ComponentKeyHandler from "./ComponentKeyHandler.svelte"
-
-  export let maxWidth: number | undefined = undefined
-
-  const [resizable, resizableHandle] = getHorizontalResizeActions(
-    undefined,
-    undefined,
-    undefined,
-    () => maxWidth ?? Infinity
-  )
 
   const Tabs = {
     Components: "Components",
@@ -25,7 +15,7 @@
   let activeTab = Tabs.Components
 </script>
 
-<div class="panel" use:resizable>
+<div class="panel">
   <div class="content">
     <ScreenList />
     <div class="tabs">
@@ -49,21 +39,14 @@
       <div class="tab-content"><StatePanel /></div>
     {/if}
   </div>
-  <div class="divider">
-    <div
-      class="dividerClickExtender"
-      role="separator"
-      use:resizableHandle
-    ></div>
-  </div>
 </div>
 <ComponentKeyHandler />
 
 <style>
   .panel {
     display: flex;
-    min-width: 310px;
-    width: 310px;
+    flex: 1 1 auto;
+    min-width: 0;
     height: 100%;
   }
 
@@ -95,23 +78,5 @@
     display: flex;
     align-items: center;
     gap: 4px;
-  }
-
-  .divider {
-    position: relative;
-    height: 100%;
-    width: 2px;
-    background: var(--spectrum-global-color-gray-200);
-    transition: background 130ms ease-out;
-  }
-  .divider:hover {
-    background: var(--spectrum-global-color-gray-300);
-    cursor: row-resize;
-  }
-  .dividerClickExtender {
-    position: absolute;
-    cursor: col-resize;
-    height: 100%;
-    width: 12px;
   }
 </style>

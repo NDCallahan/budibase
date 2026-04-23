@@ -5,8 +5,6 @@
     selectedScreen,
     componentStore,
     selectedComponent,
-    workspaceAppStore,
-    appStore,
   } from "@/stores/builder"
   import ComponentSettingsSection from "./ComponentSettingsSection.svelte"
   import DesignSection from "./DesignSection.svelte"

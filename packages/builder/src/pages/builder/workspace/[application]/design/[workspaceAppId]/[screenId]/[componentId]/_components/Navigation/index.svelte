@@ -25,10 +25,7 @@
     screenStore,
     componentStore,
     navigationStore as nav,
-    workspaceAppStore,
-    appStore,
   } from "@/stores/builder"
-  import { notifyParent } from "@/helpers/detachedPanelBridge"
   import { DefaultAppTheme } from "@/constants"
   import PropertyControl from "@/components/design/settings/controls/PropertyControl.svelte"
   import BarButtonList from "@/components/design/settings/controls/BarButtonList.svelte"

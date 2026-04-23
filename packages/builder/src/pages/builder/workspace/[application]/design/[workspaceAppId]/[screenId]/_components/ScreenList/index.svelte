@@ -14,11 +14,11 @@
   $: collapseTooltip = $screenPanelPinned ? "Collapse panel" : "Pin panel"
 
   const detachedPanels = getContext<Writable<Set<string>>>("detachedPanels")
-  const popOutDetachedPanel = getContext<(panel: string) => void>(
+  const popOutDetachedPanel = getContext<(_panel: string) => void>(
     "popOutDetachedPanel"
   )
   const popInDetachedPanel =
-    getContext<(panel: string) => void>("popInDetachedPanel")
+    getContext<(_panel: string) => void>("popInDetachedPanel")
   $: screensIsPopped = detachedPanels ? $detachedPanels.has("screens") : false
 
   const [resizable, resizableHandle] = getVerticalResizeActions()

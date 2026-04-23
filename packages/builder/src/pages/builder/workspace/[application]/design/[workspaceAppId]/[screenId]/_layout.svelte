@@ -59,7 +59,33 @@
   const handleDetachedMessage = (e: MessageEvent) => {
     if (e.origin !== window.location.origin) return
     if (e.data.type === "DETACHED_PANEL_READY") {
-      detachedWindowStore.set(e.source as Window)
+      const newWindow = e.source as Window
+      detachedWindowStore.set(newWindow)
+      // If the detached window reports which panels it has active, use that
+      // to update the main UI state only after the detached window is ready.
+      if (Array.isArray(e.data.panels)) {
+        detachedPanelsStore.set(new Set(e.data.panels))
+      }
+      // Send initial sync after window is ready to catch any component changes that happened during init
+      const payload = {
+        type: "SYNC_COMPONENT",
+        componentId: get(componentStore).selectedComponentId,
+        screenId: get(selectedScreen)?._id,
+      }
+      notifyDetachedPanel(newWindow, payload)
+      // Also write to localStorage as a resilient fallback for detached windows that miss postMessage
+      try {
+        localStorage.setItem(
+          "budibase.detached.sync",
+          JSON.stringify({
+            componentId: payload.componentId,
+            screenId: payload.screenId,
+            ts: Date.now(),
+          })
+        )
+      } catch (err) {
+        // ignore storage errors
+      }
     } else if (e.data.type === "DETACHED_PANEL_CLOSED") {
       detachedWindowStore.set(null)
       detachedPanelsStore.set(new Set())
@@ -71,6 +97,13 @@
       })
     } else if (e.data.type === "SELECT_SCREEN") {
       screenStore.select(e.data.screenId)
+    } else if (e.data.type === "SELECT_COMPONENT") {
+      if (e.data.screenId) {
+        screenStore.select(e.data.screenId)
+      }
+      if (e.data.componentId) {
+        componentStore.select(e.data.componentId)
+      }
     }
   }
 
@@ -80,11 +113,25 @@
 
   // Sync component/screen selection to detached window
   $: if ($detachedWindowStore && !$detachedWindowStore.closed) {
-    notifyDetachedPanel($detachedWindowStore, {
+    const payload = {
       type: "SYNC_COMPONENT",
       componentId: $componentStore.selectedComponentId,
       screenId: $selectedScreen?._id,
-    })
+    }
+
+    notifyDetachedPanel($detachedWindowStore, payload)
+    try {
+      localStorage.setItem(
+        "budibase.detached.sync",
+        JSON.stringify({
+          componentId: payload.componentId,
+          screenId: payload.screenId,
+          ts: Date.now(),
+        })
+      )
+    } catch (err) {
+      // ignore storage errors
+    }
   }
 
   const popOutDetachedPanel = (panelName: string) => {
@@ -95,6 +142,27 @@
         type: "ADD_PANEL",
         panel: panelName,
       })
+      // Immediately sync current selection to the detached window when adding a panel
+      const payload = {
+        type: "SYNC_COMPONENT",
+        componentId: get(componentStore).selectedComponentId,
+        screenId: get(selectedScreen)?._id,
+      }
+      notifyDetachedPanel(currentDetachedWindow, payload)
+      try {
+        localStorage.setItem(
+          "budibase.detached.sync",
+          JSON.stringify({
+            componentId: payload.componentId,
+            screenId: payload.screenId,
+            ts: Date.now(),
+          })
+        )
+      } catch (err) {
+        // ignore
+      }
+      // Update known detached panels immediately when the detached window already exists
+      detachedPanelsStore.update(s => new Set([...s, panelName]))
     } else {
       const urlAppId = get(appStore).appId
       const urlWorkspaceAppId = get(workspaceAppStore).selectedWorkspaceApp?._id
@@ -113,9 +181,9 @@
       window.open(
         `/builder/workspace/detached-properties?${params}`,
         DETACHED_WINDOW_TARGET,
-        `width=650,height=${screen.availHeight},top=0,resizable=yes,toolbar=no,menubar=no`      )
+        `width=650,height=${screen.availHeight},top=0,resizable=yes,toolbar=no,menubar=no`
+      )
     }
-    detachedPanelsStore.update(s => new Set([...s, panelName]))
   }
 
   const popInDetachedPanel = (panelName: string) => {

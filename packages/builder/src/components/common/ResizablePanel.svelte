@@ -10,8 +10,23 @@
   export let maxWidthRatio: number | undefined = undefined
   export let position: "left" | "right" = "left"
   export let onResizeStart: () => void = () => {}
+  export let onWidthChange: (_width: number) => void = () => {}
+  export let isResizing = false
+  export let isOpen = true
 
-  let width = defaultWidth
+  const getInitialWidth = () => {
+    if (!storageKey) {
+      return Math.max(minWidth, defaultWidth)
+    }
+
+    const saved = localStorage.getItem(storageKey)
+    const parsedWidth = saved ? parseInt(saved, 10) : NaN
+    return Number.isFinite(parsedWidth)
+      ? Math.max(minWidth, parsedWidth)
+      : Math.max(minWidth, defaultWidth)
+  }
+
+  let width = getInitialWidth()
   let computedMaxWidth = defaultWidth
 
   const clampWidth = (value: number) =>
@@ -34,35 +49,15 @@
     width = clampWidth(width)
   }
 
-  const loadWidth = () => {
-    if (!storageKey) {
-      width = clampWidth(defaultWidth)
-      return
-    }
-
-    const saved = localStorage.getItem(storageKey)
-    if (!saved) {
-      width = clampWidth(defaultWidth)
-      return
-    }
-
-    const parsedWidth = parseInt(saved, 10)
-    if (!Number.isFinite(parsedWidth)) {
-      width = clampWidth(defaultWidth)
-      return
-    }
-
-    width = clampWidth(parsedWidth)
-  }
-
   const [resizable, resizableHandle] = getHorizontalResizeActions(
-    defaultWidth,
+    width,
     nextWidth => {
       if (!Number.isFinite(nextWidth)) {
         return
       }
       const clampedWidth = clampWidth(nextWidth)
       width = clampedWidth
+      onWidthChange(clampedWidth)
       if (storageKey) {
         localStorage.setItem(storageKey, clampedWidth.toString())
       }
@@ -71,9 +66,10 @@
     position
   )
 
+  $: maxWidth, updateMaxWidth?.()
+
   onMount(() => {
     updateMaxWidth()
-    loadWidth()
     window.addEventListener("resize", updateMaxWidth)
   })
 
@@ -85,7 +81,8 @@
 <div
   class="resizable-panel"
   class:resizing-panel={$builderStore.isResizingPanel}
-  style="width: {width}px; min-width: {minWidth}px; max-width: {computedMaxWidth}px;"
+  class:resizing={isResizing}
+  style={isOpen ? `width: ${width}px; min-width: ${minWidth}px; max-width: ${computedMaxWidth}px;` : `width: 100%; min-width: 0;`}
   use:resizable
 >
   {#if position === "right"}
@@ -110,7 +107,9 @@
     display: flex;
     height: 100%;
     overflow: visible;
-    transition: width 300ms ease-out;
+  }
+  .resizable-panel.resizing {
+    transition: none;
   }
   .content {
     flex: 1 1 auto;
