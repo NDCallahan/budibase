@@ -7,7 +7,8 @@
   import type { Writable } from "svelte/store"
   import type { Screen } from "@budibase/types"
   import ScreenNavItem from "./ScreenNavItem.svelte"
-  import { getContext } from "svelte"
+  import { getContext, onMount } from "svelte"
+  import { isDetachedPanel, notifyParent } from "@/helpers/detachedPanelBridge"
 
   const toggleScreenPanel = getContext<() => void>("toggleScreenPanel")
   const screenPanelPinned = getContext<Writable<boolean>>("screenPanelPinned")
@@ -28,6 +29,7 @@
   let screensContainer!: HTMLDivElement
   let scrolling = false
   let newScreenModal: NewScreenModal
+  const OPEN_NEW_SCREEN_MODAL_EVENT = "open-new-screen-modal"
 
   $: allScreens = $workspaceAppStore.selectedWorkspaceApp?.screens || []
   $: filteredScreens = getFilteredScreens(allScreens, searchValue)
@@ -55,6 +57,31 @@
     const target = e.target as HTMLElement
     scrolling = target.scrollTop !== 0
   }
+
+  const handleAddScreen = () => {
+    if (isDetachedPanel()) {
+      notifyParent({ type: "TOGGLE_ADD_SCREEN" })
+      return
+    }
+    newScreenModal?.open?.()
+  }
+
+  const handleOpenNewScreenModal = () => {
+    newScreenModal?.open?.()
+  }
+
+  onMount(() => {
+    window.addEventListener(
+      OPEN_NEW_SCREEN_MODAL_EVENT,
+      handleOpenNewScreenModal
+    )
+    return () => {
+      window.removeEventListener(
+        OPEN_NEW_SCREEN_MODAL_EVENT,
+        handleOpenNewScreenModal
+      )
+    }
+  })
 </script>
 
 <div class="screens" class:searching use:resizable>
@@ -64,7 +91,7 @@
       placeholder="Search for screens"
       bind:value={searchValue}
       bind:search={searching}
-      onAdd={() => newScreenModal?.open?.()}
+      onAdd={handleAddScreen}
     >
       <div slot="right" class="header-actions">
         <button

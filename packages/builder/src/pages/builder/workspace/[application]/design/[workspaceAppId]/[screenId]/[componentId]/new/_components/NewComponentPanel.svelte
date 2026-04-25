@@ -9,13 +9,41 @@
     componentStore,
     selectedComponent,
   } from "@/stores/builder"
-  import { onMount } from "svelte"
+  import { getContext, onMount } from "svelte"
   import { fly } from "svelte/transition"
   import { findComponentPath } from "@/helpers/components"
   import NewPill from "@/components/common/NewPill.svelte"
   import { featureFlags } from "@/stores/portal"
 
   $goto
+
+  export let onClose = () => $goto("../")
+  export let panelWidthOverride = undefined
+
+  const isDetachedWindow =
+    typeof window !== "undefined" &&
+    window.location.pathname.includes("/detached-properties")
+
+  const PANEL_WIDTH_KEY = "design-properties-panel-width"
+  const DEFAULT_PANEL_WIDTH = 280
+
+  // In the main window NewComponentPanel is a slot descendant of PropertiesPanel,
+  // so the live width is available from context and updates on every resize.
+  // The detached window passes panelWidthOverride instead (measured via ResizeObserver).
+  const propertiesPanelWidthStore = getContext("propertiesPanelWidth")
+
+  const getFallbackWidth = () => {
+    const saved = localStorage.getItem(PANEL_WIDTH_KEY)
+    const parsed = saved ? parseInt(saved, 10) : NaN
+    return Number.isFinite(parsed) ? parsed : DEFAULT_PANEL_WIDTH
+  }
+
+  $: panelWidth =
+    panelWidthOverride !== undefined
+      ? panelWidthOverride
+      : propertiesPanelWidthStore
+        ? $propertiesPanelWidthStore
+        : getFallbackWidth()
 
   // Smallest possible 1x1 transparent GIF
   const ghost = new Image(1, 1)
@@ -246,13 +274,19 @@
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="container" transition:fly|local={{ x: 260, duration: 300 }}>
+<div
+  class="container"
+  class:detached={isDetachedWindow}
+  class:embedded={!isDetachedWindow}
+  style={isDetachedWindow ? `width: ${panelWidth}px` : undefined}
+  transition:fly|local={{ x: panelWidth, duration: 300 }}
+>
   <Panel
     title="Add component"
     showCloseButton
-    onClickCloseButton={() => $goto("../")}
+    onClickCloseButton={onClose}
     borderLeft
-    wide
+    customWidth={isDetachedWindow ? panelWidth : undefined}
   >
     <Layout paddingX="L" paddingY="XL" gap="S">
       <Search
@@ -308,13 +342,28 @@
 
 <style>
   .container {
-    position: fixed;
     right: 0;
     z-index: 1;
-    height: calc(100% - 60px);
+    height: 100%;
     display: flex;
     flex-direction: row;
     align-items: stretch;
+  }
+  .container.detached {
+    position: fixed;
+  }
+  .container.embedded {
+    position: absolute;
+    top: 0;
+    width: 100%;
+  }
+  .container :global(.panel) {
+    width: 100%;
+  }
+  .container :global(.panel.borderLeft) {
+    min-width: 100% !important;
+    width: 100% !important;
+    flex: 1 1 auto !important;
   }
   .category-label {
     color: var(--spectrum-global-color-gray-600);

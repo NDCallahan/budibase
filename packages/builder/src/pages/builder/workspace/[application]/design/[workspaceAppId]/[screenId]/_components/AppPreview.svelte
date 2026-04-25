@@ -19,8 +19,15 @@
   import ErrorSVG from "@budibase/frontend-core/assets/error.svg?raw"
   import { getThemeClassNames, ThemeClassPrefix } from "@budibase/shared-core"
   import { goto, isActive } from "@roxi/routify"
-  import { onDestroy, onMount } from "svelte"
-  import { get } from "svelte/store"
+  import { getContext, onDestroy, onMount } from "svelte"
+  import { derived, readable, get } from "svelte/store"
+
+  const detachedPanels = getContext("detachedPanels")
+  // Use a derived store so AppPreview only re-renders when the "properties"
+  // boolean flips, not on every unrelated panel change (e.g. screens added).
+  const propertiesIsPoppedStore = detachedPanels
+    ? derived(detachedPanels, p => p.has("properties"))
+    : readable(false)
 
   $goto
   $isActive
@@ -82,6 +89,9 @@
 
   // Determine if the add component menu is active
   $: isAddingComponent = $isActive(`./${selectedComponentId}/new`)
+
+  // Hide the add-component button when properties are popped out into the detached window
+  $: propertiesIsPopped = $propertiesIsPoppedStore
 
   // Register handler to send custom to the preview
   $: sendPreviewEvent = (name, payload) => {
@@ -242,6 +252,7 @@
     if ($isActive(`./:componentId/new`)) {
       $goto(`./:componentId`)
     } else {
+      window.dispatchEvent(new Event("ensure-properties-panel-open"))
       $goto(`./:componentId/new`)
     }
   }
@@ -287,15 +298,17 @@
     class:hidden={loading || error}
   ></iframe>
   <div class="underlay"></div>
-  <div
-    class="add-component"
-    class:active={isAddingComponent}
-    title="Add component (Cmd/Ctrl + Enter)"
-    aria-label="Add component"
-    on:click={toggleAddComponent}
-  >
-    <Icon size="XL" name="plus">Component</Icon>
-  </div>
+  {#if !propertiesIsPopped}
+    <div
+      class="add-component"
+      class:active={isAddingComponent}
+      title="Add component (Cmd/Ctrl + Enter)"
+      aria-label="Add component"
+      on:click={toggleAddComponent}
+    >
+      <Icon size="XL" name="plus">Component</Icon>
+    </div>
+  {/if}
 </div>
 <ConfirmDialog
   bind:this={confirmDeleteDialog}

@@ -104,6 +104,14 @@
       if (e.data.componentId) {
         componentStore.select(e.data.componentId)
       }
+    } else if (e.data.type === "TOGGLE_ADD_COMPONENT") {
+      if ($isActive(`./:componentId/new`)) {
+        $goto(`./:componentId`)
+      } else {
+        $goto(`./:componentId/new`)
+      }
+    } else if (e.data.type === "TOGGLE_ADD_SCREEN") {
+      window.dispatchEvent(new Event("open-new-screen-modal"))
     }
   }
 
@@ -135,13 +143,16 @@
   }
 
   const popOutDetachedPanel = (panelName: string) => {
+    const panelsToAdd = [panelName]
     const currentDetachedWindow = get(detachedWindowStore)
     if (currentDetachedWindow && !currentDetachedWindow.closed) {
       currentDetachedWindow.focus() // <-- bring window to front if already open
-      notifyDetachedPanel(currentDetachedWindow, {
-        type: "ADD_PANEL",
-        panel: panelName,
-      })
+      for (const panel of panelsToAdd) {
+        notifyDetachedPanel(currentDetachedWindow, {
+          type: "ADD_PANEL",
+          panel,
+        })
+      }
       // Immediately sync current selection to the detached window when adding a panel
       const payload = {
         type: "SYNC_COMPONENT",
@@ -162,14 +173,14 @@
         // ignore
       }
       // Update known detached panels immediately when the detached window already exists
-      detachedPanelsStore.update(s => new Set([...s, panelName]))
+      detachedPanelsStore.update(s => new Set([...s, ...panelsToAdd]))
     } else {
       const urlAppId = get(appStore).appId
       const urlWorkspaceAppId = get(workspaceAppStore).selectedWorkspaceApp?._id
       const urlComponentId = get(componentStore).selectedComponentId
       const urlScreenId = get(selectedScreen)?._id
       const currentPanels = get(detachedPanelsStore)
-      const newPanels = new Set([...currentPanels, panelName])
+      const newPanels = new Set([...currentPanels, ...panelsToAdd])
 
       const params = new URLSearchParams()
       if (urlAppId) params.set("appId", urlAppId)

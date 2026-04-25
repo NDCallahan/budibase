@@ -15,8 +15,10 @@
   import ScreenSettingsPanel from "../[application]/design/[workspaceAppId]/[screenId]/[componentId]/_components/Screen/index.svelte"
   import NavigationPanel from "../[application]/design/[workspaceAppId]/[screenId]/[componentId]/_components/Navigation/index.svelte"
   import LeftPanel from "../[application]/design/[workspaceAppId]/[screenId]/_components/LeftPanel.svelte"
+  import NewComponentPanel from "../[application]/design/[workspaceAppId]/[screenId]/[componentId]/new/_components/NewComponentPanel.svelte"
   import ResizablePanel from "@/components/common/ResizablePanel.svelte"
   import { notifyParent } from "@/helpers/detachedPanelBridge"
+  import { Icon } from "@budibase/bbui"
 
   let activePanels = new Set<string>()
   const detachedPanelsStore = writable<Set<string>>(activePanels)
@@ -56,11 +58,14 @@
   let messageHandler: ((_e: MessageEvent) => void) | null = null
   let resizeHandler: (() => void) | null = null
   let storageHandler: ((e: StorageEvent) => void) | null = null
+  let toggleAddComponentHandler: (() => void) | null = null
   let screenUnsubscribe: (() => void) | null = null
   let componentUnsubscribe: (() => void) | null = null
   let isFirstScreenSync = true
   let suppressOutgoingComponentNotify = false
   let windowWidth = window.innerWidth
+  let showAddComponentPanel = false
+  let propertiesPaneWidth = 0
 
   onMount(async () => {
     const params = new URLSearchParams(window.location.search)
@@ -123,7 +128,11 @@
           suppressOutgoingComponentNotify = false
           return
         }
-        if (state.selectedComponentId && window.opener && !window.opener.closed) {
+        if (
+          state.selectedComponentId &&
+          window.opener &&
+          !window.opener.closed
+        ) {
           notifyParent({
             type: "SELECT_COMPONENT",
             componentId: state.selectedComponentId,
@@ -149,8 +158,13 @@
             const isScreenComp =
               componentId === `${relevantScreenId}-screen` ||
               componentId === `${relevantScreenId}-screen-explicit`
-            const isNavigationComp = componentId === `${relevantScreenId}-navigation`
-            if (!isScreenComp && !isNavigationComp && !activePanels.has("properties")) {
+            const isNavigationComp =
+              componentId === `${relevantScreenId}-navigation`
+            if (
+              !isScreenComp &&
+              !isNavigationComp &&
+              !activePanels.has("properties")
+            ) {
               activePanels.add("properties")
               detachedPanelsStore.set(new Set(activePanels))
             }
@@ -185,7 +199,10 @@
         // Inform the parent that this detached window is ready and report which panels
         // are active so the parent can update its UI only after the detached window
         // has fully initialized. This avoids layout jitter in the main window.
-        notifyParent({ type: "DETACHED_PANEL_READY", panels: Array.from(activePanels) })
+        notifyParent({
+          type: "DETACHED_PANEL_READY",
+          panels: Array.from(activePanels),
+        })
       }
 
       // Apply any recent sync that might have been written by the parent (resilient fallback)
@@ -200,12 +217,18 @@
             suppressOutgoingComponentNotify = true
             componentStore.select(parsed.componentId)
             // If this payload indicates a component/navigation, ensure properties pane
-            const relevantScreenId = parsed.screenId || componentId?.split("-")[0]
+            const relevantScreenId =
+              parsed.screenId || componentId?.split("-")[0]
             const isScreenComp =
               componentId === `${relevantScreenId}-screen` ||
               componentId === `${relevantScreenId}-screen-explicit`
-            const isNavigationComp = componentId === `${relevantScreenId}-navigation`
-            if (!isScreenComp && !isNavigationComp && !activePanels.has("properties")) {
+            const isNavigationComp =
+              componentId === `${relevantScreenId}-navigation`
+            if (
+              !isScreenComp &&
+              !isNavigationComp &&
+              !activePanels.has("properties")
+            ) {
               activePanels.add("properties")
               detachedPanelsStore.set(new Set(activePanels))
             }
@@ -233,12 +256,18 @@
             // to avoid immediate echoing back to the origin.
             suppressOutgoingComponentNotify = true
             componentStore.select(parsed.componentId)
-            const relevantScreenId = parsed.screenId || componentId?.split("-")[0]
+            const relevantScreenId =
+              parsed.screenId || componentId?.split("-")[0]
             const isScreenComp =
               componentId === `${relevantScreenId}-screen` ||
               componentId === `${relevantScreenId}-screen-explicit`
-            const isNavigationComp = componentId === `${relevantScreenId}-navigation`
-            if (!isScreenComp && !isNavigationComp && !activePanels.has("properties")) {
+            const isNavigationComp =
+              componentId === `${relevantScreenId}-navigation`
+            if (
+              !isScreenComp &&
+              !isNavigationComp &&
+              !activePanels.has("properties")
+            ) {
               activePanels.add("properties")
               detachedPanelsStore.set(new Set(activePanels))
             }
@@ -255,6 +284,14 @@
         }
       }
       window.addEventListener("storage", storageHandler)
+
+      toggleAddComponentHandler = () => {
+        toggleAddComponent()
+      }
+      window.addEventListener(
+        "toggle-detached-add-component",
+        toggleAddComponentHandler
+      )
 
       isInitializing = false
     } catch (error: any) {
@@ -273,6 +310,12 @@
     }
     if (storageHandler) {
       window.removeEventListener("storage", storageHandler)
+    }
+    if (toggleAddComponentHandler) {
+      window.removeEventListener(
+        "toggle-detached-add-component",
+        toggleAddComponentHandler
+      )
     }
     if (screenUnsubscribe) {
       screenUnsubscribe()
@@ -293,23 +336,58 @@
   $: isComponentPanel = !isScreenPanel && !isNavigationPanel && !!componentId
   $: showScreensPanel = $detachedPanelsStore.has("screens")
   $: showPropertiesPanel = $detachedPanelsStore.has("properties")
-  $: screensMaxWidth = showPropertiesPanel ? windowWidth - 260 : undefined
+  $: showComponentsPanel = $detachedPanelsStore.has("components")
+
+  $: showLeftPanel = showScreensPanel || showComponentsPanel
+  $: leftPanelMaxWidth = showPropertiesPanel ? windowWidth - 240 : undefined
+
+  const toggleAddComponent = () => {
+    showAddComponentPanel = !showAddComponentPanel
+  }
+
+  const observePropertiesPane = (node: HTMLDivElement) => {
+    const updateWidth = () => {
+      const width = Math.round(node.getBoundingClientRect().width)
+      if (Number.isFinite(width) && width > 0) {
+        propertiesPaneWidth = width
+      }
+    }
+
+    updateWidth()
+
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(() => {
+        updateWidth()
+      })
+
+      observer.observe(node)
+
+      return {
+        destroy() {
+          observer.disconnect()
+        },
+      }
+    }
+
+    return {
+      destroy() {},
+    }
+  }
 </script>
 
 <div class="detached-properties">
-  
   {#if isInitializing}
     <div class="state-message">Loading...</div>
   {:else if initError}
     <div class="state-message error">{initError}</div>
   {:else}
-    {#if showScreensPanel}
+    {#if showLeftPanel}
       <div class="screens-pane" class:solo={!showPropertiesPanel}>
         <ResizablePanel
           storageKey="detached-screens-panel-width"
           defaultWidth={310}
           minWidth={260}
-          maxWidth={screensMaxWidth}
+          maxWidth={leftPanelMaxWidth}
           position="left"
         >
           <LeftPanel />
@@ -317,7 +395,7 @@
       </div>
     {/if}
     {#if showPropertiesPanel}
-      <div class="properties-pane">
+      <div class="properties-pane" use:observePropertiesPane>
         {#if isScreenPanel}
           <ScreenSettingsPanel />
         {:else if isNavigationPanel}
@@ -329,9 +407,24 @@
             Select a component in the main builder to view its properties here.
           </div>
         {/if}
+        <button
+          class="add-component"
+          class:open={showAddComponentPanel}
+          title="Add component (Cmd/Ctrl + Enter)"
+          aria-label="Add component"
+          on:click={toggleAddComponent}
+        >
+          <Icon size="XL" name="plus" />
+        </button>
+        {#if showAddComponentPanel}
+          <NewComponentPanel
+            onClose={() => (showAddComponentPanel = false)}
+            panelWidthOverride={propertiesPaneWidth || undefined}
+          />
+        {/if}
       </div>
     {/if}
-    {#if !showScreensPanel && !showPropertiesPanel}
+    {#if !showLeftPanel && !showPropertiesPanel}
       <div class="state-message">
         Select a component in the main builder to view its properties here.
       </div>
@@ -367,12 +460,48 @@
     flex-direction: column;
     flex: 1 1 auto;
     overflow: hidden;
-    min-width: 260px;
+    min-width: 240px;
   }
   .properties-pane :global(.panel) {
     flex: 1 1 auto;
     width: 100%;
     min-width: unset;
+  }
+
+  .add-component {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 0;
+    background: var(--spectrum-global-color-blue-500);
+    display: grid;
+    place-items: center;
+    color: white;
+    box-shadow: 1px 3px 8px 0 rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition:
+      transform ease-out 300ms,
+      background ease-out 130ms;
+    z-index: 10;
+  }
+
+  .add-component:hover {
+    background: var(--spectrum-global-color-blue-600);
+  }
+
+  .add-component:active {
+    transform: scale(0.97);
+  }
+
+  .add-component.open {
+    transform: rotate(45deg);
+  }
+
+  .add-component.open:active {
+    transform: rotate(45deg) scale(0.97);
   }
 
   .state-message {
@@ -389,5 +518,4 @@
   .state-message.error {
     color: var(--spectrum-red-700);
   }
-  
 </style>

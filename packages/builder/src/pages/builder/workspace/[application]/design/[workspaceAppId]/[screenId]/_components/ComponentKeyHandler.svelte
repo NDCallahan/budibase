@@ -8,6 +8,7 @@
     previewStore,
   } from "@/stores/builder"
   import { findComponent, getChildIdsForComponent } from "@/helpers/components"
+  import { isDetachedPanel, notifyParent } from "@/helpers/detachedPanelBridge"
   import { goto, isActive } from "@roxi/routify"
   import { notifications } from "@budibase/bbui"
   import ConfirmDialog from "@/components/common/ConfirmDialog.svelte"
@@ -50,9 +51,14 @@
       }
     },
     ["Ctrl+Enter"]: () => {
+      if (isDetachedPanel()) {
+        window.dispatchEvent(new Event("toggle-detached-add-component"))
+        return
+      }
       if ($isActive(`./:componentId/new`)) {
         $goto(`./${$componentStore.selectedComponentId}`)
       } else {
+        window.dispatchEvent(new Event("ensure-properties-panel-open"))
         $goto(`./:componentId/new`)
       }
     },

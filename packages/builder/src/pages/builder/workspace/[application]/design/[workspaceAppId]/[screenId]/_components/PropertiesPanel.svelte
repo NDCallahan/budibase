@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy, setContext, getContext } from "svelte"
+  import { onDestroy, onMount, setContext, getContext } from "svelte"
   import { writable, derived } from "svelte/store"
   import { Icon } from "@budibase/bbui"
   import { componentStore, selectedScreen } from "@/stores/builder"
@@ -33,6 +33,9 @@
 
   const pinnedStore = writable(true)
   $: pinnedStore.set(pinned)
+
+  const panelWidthStore = writable(panelWidth)
+  $: panelWidthStore.set(panelWidth)
 
   // Read shared detached window state from _layout.svelte
   const detachedPanels = getContext<Writable<Set<string>>>("detachedPanels")
@@ -104,6 +107,7 @@
 
   setContext("togglePropertiesPanel", toggle)
   setContext("propertiesPanelPinned", pinnedStore)
+  setContext("propertiesPanelWidth", panelWidthStore)
   setContext(
     "isPanelPopped",
     detachedPanels
@@ -112,7 +116,20 @@
   )
   setContext("popInPanel", popIn)
 
+  const ensureOpen = () => {
+    if (!pinned) {
+      pinned = true
+      manuallyClosed = false
+      localStorage.setItem(STORAGE_KEY, "true")
+    }
+  }
+
+  onMount(() => {
+    window.addEventListener("ensure-properties-panel-open", ensureOpen)
+  })
+
   onDestroy(() => {
+    window.removeEventListener("ensure-properties-panel-open", ensureOpen)
     if (closeTimer) {
       clearTimeout(closeTimer)
     }
@@ -256,6 +273,7 @@
     flex-direction: row;
     align-items: stretch;
     min-width: 0;
+    position: relative;
   }
   /* Panel.svelte uses fixed flex: 0 0 310px / width: 310px (wide).
      Override to fill ResizablePanel's width instead of staying fixed. */

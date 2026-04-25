@@ -82,7 +82,9 @@
   class="resizable-panel"
   class:resizing-panel={$builderStore.isResizingPanel}
   class:resizing={isResizing}
-  style={isOpen ? `width: ${width}px; min-width: ${minWidth}px; max-width: ${computedMaxWidth}px;` : `width: 100%; min-width: 0;`}
+  style={isOpen
+    ? `width: ${width}px; min-width: ${minWidth}px; max-width: ${computedMaxWidth}px;`
+    : `width: 100%; min-width: 0;`}
   use:resizable
 >
   {#if position === "right"}
