@@ -57,7 +57,7 @@
   let initError: string | null = null
   let messageHandler: ((_e: MessageEvent) => void) | null = null
   let resizeHandler: (() => void) | null = null
-  let storageHandler: ((e: StorageEvent) => void) | null = null
+  let storageHandler: ((_e: StorageEvent) => void) | null = null
   let toggleAddComponentHandler: (() => void) | null = null
   let screenUnsubscribe: (() => void) | null = null
   let componentUnsubscribe: (() => void) | null = null

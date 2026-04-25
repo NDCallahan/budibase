@@ -8,7 +8,7 @@
     previewStore,
   } from "@/stores/builder"
   import { findComponent, getChildIdsForComponent } from "@/helpers/components"
-  import { isDetachedPanel, notifyParent } from "@/helpers/detachedPanelBridge"
+  import { isDetachedPanel } from "@/helpers/detachedPanelBridge"
   import { goto, isActive } from "@roxi/routify"
   import { notifications } from "@budibase/bbui"
   import ConfirmDialog from "@/components/common/ConfirmDialog.svelte"
