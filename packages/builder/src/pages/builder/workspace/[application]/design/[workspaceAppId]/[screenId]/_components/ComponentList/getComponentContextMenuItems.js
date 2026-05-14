@@ -7,6 +7,7 @@ const getContextMenuItems = (component, componentCollapsed) => {
   const isBlock = definition?.block === true
   const canEject = !(definition?.ejectable === false)
   const hasChildren = component?._children?.length
+  const hidden = !!component?._hidden
 
   const keyboardEvent = (key, ctrlKey = false) => {
     document.dispatchEvent(
@@ -21,6 +22,19 @@ const getContextMenuItems = (component, componentCollapsed) => {
   }
 
   return [
+    {
+      icon: hidden ? "eye" : "eye-slash",
+      name: hidden ? "Unhide" : "Hide",
+      keyBind: null,
+      visible: true,
+      disabled: false,
+      callback: async () => {
+        await componentStore.patch(updated => {
+          updated._hidden = !hidden
+          return true
+        }, component?._id)
+      },
+    },
     {
       icon: "trash",
       name: "Delete",

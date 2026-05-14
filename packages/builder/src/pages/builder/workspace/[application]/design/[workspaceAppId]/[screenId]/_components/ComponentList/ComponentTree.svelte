@@ -146,6 +146,7 @@
   {#each filteredComponents || [] as component, index (component._id)}
     {@const opened = isOpen(component, openNodes)}
     <li
+      class:hidden-component={component._hidden}
       on:contextmenu={e => openContextMenu(e, component, opened)}
       on:dblclick|stopPropagation={() => startRename(component)}
       on:click|stopPropagation={() => {
@@ -201,6 +202,11 @@
               <span title={getComponentText(component)}>
                 {getComponentText(component)}
               </span>
+              {#if component._hidden}
+                <span class="hidden-badge" title="Hidden from preview and runtime">
+                  Hidden
+                </span>
+              {/if}
             </div>
           {/if}
         </svelte:fragment>
@@ -246,5 +252,23 @@
     outline: none;
     border-color: var(--spectrum-global-color-gray-600);
     background: var(--spectrum-global-color-gray-100);
+  }
+  .text {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hidden-component {
+    opacity: 0.72;
+  }
+  .hidden-badge {
+    font-size: 10px;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: var(--spectrum-global-color-gray-300);
+    color: var(--spectrum-global-color-gray-800);
+    border-radius: 10px;
+    padding: 2px 6px;
   }
 </style>

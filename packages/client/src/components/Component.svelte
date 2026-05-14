@@ -161,6 +161,13 @@
   $: droppable = interactive
   $: builderHidden =
     $builderStore.inBuilder && $builderStore.hiddenComponentIds?.includes(id)
+  $: hidden = !!instance?._hidden
+  $: hasVisibilityConditions = !!conditions?.some(
+    condition => condition?.action === "hide" || condition?.action === "show"
+  )
+  $: hiddenByConditionalVisibility = hasVisibilityConditions && !visible
+  $: showInBuilderDespiteVisibility =
+    $builderStore.inBuilder && hiddenByConditionalVisibility
 
   // Empty components are those which accept children but do not have any.
   // Empty states can be shown for these components, but can be disabled
@@ -499,6 +506,8 @@
   // or visibility changes required
   const evaluateConditions = conditions => {
     if (!conditions?.length) {
+      conditionalSettings = null
+      visible = true
       return
     }
 
@@ -659,11 +668,12 @@
   })
 </script>
 
-{#if constructor && initialSettings && (visible || inSelectedPath) && !builderHidden}
+{#if constructor && initialSettings && (visible || inSelectedPath || showInBuilderDespiteVisibility) && !builderHidden && !hidden}
   <!-- The ID is used as a class because getElementsByClassName is O(1) -->
   <!-- and the performance matters for the selection indicators -->
   <div
     class={`component ${id}`}
+    class:conditional-hidden={showInBuilderDespiteVisibility}
     class:draggable
     class:droppable
     class:empty
@@ -674,6 +684,11 @@
     class:block={isBlock}
     class:error={hasComponentErrors}
     class:root={isRoot}
+    title={
+      showInBuilderDespiteVisibility
+        ? "Hidden at runtime due to conditional visibility"
+        : null
+    }
     data-id={id}
     data-name={name}
     data-icon={icon}
@@ -717,5 +732,25 @@
   }
   .interactive {
     cursor: default !important;
+  }
+  .component.conditional-hidden :global(> :first-child) {
+    position: relative;
+    opacity: 0.55;
+    outline: 2px dashed var(--spectrum-global-color-gray-300) !important;
+    outline-offset: 2px;
+  }
+  .component.conditional-hidden :global(> :first-child::after) {
+    content: "Hidden at runtime";
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: var(--spectrum-global-color-gray-300);
+    color: white;
+    font-size: 11px;
+    line-height: 1;
+    padding: 4px 6px;
+    border-radius: 3px;
+    pointer-events: none;
+    z-index: 2;
   }
 </style>
