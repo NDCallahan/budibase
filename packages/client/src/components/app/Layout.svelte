@@ -55,6 +55,10 @@
 
   export let collapsible = false
 
+  export let screenBackground
+  export let screenGradient
+  export let screenCustomCss
+
   const NavigationClasses = {
     Top: "top",
     Left: "left",
@@ -284,6 +288,25 @@
     return style
   }
 
+  const getScreenStyle = (background, gradient, customCss) => {
+    let style = ""
+    if (gradient) {
+      style += `background: ${gradient};`
+    } else if (background) {
+      style += `background-color: ${background};`
+    }
+    if (customCss) {
+      style += customCss
+    }
+    return style || undefined
+  }
+
+  $: screenStyle = getScreenStyle(
+    screenBackground,
+    screenGradient,
+    screenCustomCss
+  )
+
   const getSanitizedUrl = (url, openInNewTab) => {
     if (!isInternal(url)) {
       return ensureExternal(url)
@@ -470,6 +493,7 @@
       {/if}
       <div
         class="main-wrapper"
+        style={screenStyle}
         on:click={() => {
           if ($builderStore.inBuilder) {
             builderStore.actions.selectComponent(screenId)
