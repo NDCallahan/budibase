@@ -1,5 +1,6 @@
 <script>
   import { getContext, onMount } from "svelte"
+  import { get } from "svelte/store"
   import { dndzone } from "svelte-dnd-action"
   import { Icon, Modal, ModalContent } from "@budibase/bbui"
 
@@ -9,7 +10,6 @@
     reorder,
     subscribe,
     datasource,
-    rows,
   } = getContext("grid")
 
   let modal
@@ -49,27 +49,23 @@
     try {
       const newVisibleOrder = columns.map(col => col.name)
 
-      // Get all columns (visible + hidden) from the store
-      const allCols = [...$gridColumns]
-
-      // Find which slots (indices) in the full array are visible columns
-      const visibleSlots = allCols
-        .map((col, idx) => (col.visible ? idx : null))
-        .filter(idx => idx !== null)
-
-      // Place the reordered visible columns into those same slot positions
-      newVisibleOrder.forEach((name, i) => {
-        const colData = $gridColumns.find(c => c.name === name)
-        if (colData) {
-          allCols[visibleSlots[i]] = colData
-        }
+      // Rearrange the columns store to match the new visible order,
+      // mirroring the pattern used by moveColumn in reorder.ts.
+      // The `state` in update() is the raw (non-enriched) writable value.
+      gridColumns.update(state => {
+        const result = [...state]
+        const visibleSlots = state
+          .map((col, idx) => (col.visible ? idx : null))
+          .filter(idx => idx !== null)
+        newVisibleOrder.forEach((name, i) => {
+          const col = state.find(c => c.name === name)
+          if (col) result[visibleSlots[i]] = col
+        })
+        return result
       })
 
-      // Update the store with the rearranged full column list
-      gridColumns.update(() => allCols)
-
-      // Add schema mutations for all columns with their new order indices
-      allCols.forEach((column, idx) => {
+      // Read the updated enriched columns and assign sequential order mutations
+      get(gridColumns).forEach((column, idx) => {
         const mutation = { order: idx }
         if (!column.related) {
           datasource.actions.addSchemaMutation(column.name, mutation)
@@ -94,32 +90,40 @@
   <ModalContent
     title="Reorder Columns"
     confirmText="Save"
-    on:confirm={saveReorder}
-    on:cancel={closeModal}
+    onConfirm={saveReorder}
+    onCancel={closeModal}
   >
-    <div
-      class="columns-list align-left"
-      use:dndzone={{
-        items: columns,
-        flipDurationMs,
-        dropTargetStyle: { outline: "none" },
-      }}
-      on:finalize={handleFinalize}
-      on:consider={handleDndEvent}
-    >
-      {#each columns as column (column.id)}
-        <div class="column-item">
-          <div class="drag-handle reorder-icon">
-            <Icon name="dots-nine" size="M" />
+    <div class="scroll-container">
+      <div
+        class="columns-list align-left"
+        use:dndzone={{
+          items: columns,
+          flipDurationMs,
+          dropTargetStyle: { outline: "none" },
+        }}
+        on:finalize={handleFinalize}
+        on:consider={handleDndEvent}
+      >
+        {#each columns as column (column.id)}
+          <div class="column-item">
+            <div class="drag-handle reorder-icon">
+              <Icon name="dots-nine" size="M" />
+            </div>
+            <div class="column-label">{column.label}</div>
           </div>
-          <div class="column-label">{column.label}</div>
-        </div>
-      {/each}
+        {/each}
+      </div>
     </div>
   </ModalContent>
 </Modal>
 
 <style>
+  .scroll-container {
+    max-height: 60vh;
+    overflow-y: auto;
+    width: 100%;
+  }
+
   .columns-list {
     display: flex;
     flex-direction: column;
