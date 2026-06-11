@@ -2,14 +2,13 @@
   import { get } from "svelte/store"
   import {
     DetailSummary,
-    ActionButton,
     Drawer,
     Button,
-    Select,
     notifications,
   } from "@budibase/bbui"
   import PropertyControl from "@/components/design/settings/controls/PropertyControl.svelte"
   import ColorPicker from "@/components/design/settings/controls/ColorPicker.svelte"
+  import BackgroundGradientControl from "@/components/design/settings/controls/BackgroundGradientControl.svelte"
   import ClientBindingPanel from "@/components/common/bindings/ClientBindingPanel.svelte"
   import { getBindableProperties } from "@/dataBinding"
   import { selectedScreen, screenStore, themeStore } from "@/stores/builder"
@@ -63,7 +62,7 @@
     />
     <PropertyControl
       label="Gradient"
-      control={Select}
+      control={BackgroundGradientControl}
       value={$selectedScreen?.screenGradient}
       onChange={val => updateSetting("screenGradient", val)}
       props={{

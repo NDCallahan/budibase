@@ -1,6 +1,7 @@
 <script>
   import { getContext, tick } from "svelte"
   import { get } from "svelte/store"
+  import { helpers } from "@budibase/shared-core"
 
   const component = getContext("component")
   const { styleable, sidePanelStore, builderStore, dndIsDragging } =
@@ -108,11 +109,7 @@
   // reactivity avoids the infinite-loop issues of a MutationObserver approach.
   $: _normalStyles = $component.styles?.normal || {}
   $: panelBgColor = _normalStyles["background"] || ""
-  // Gradient values end with a trailing ";" in the stored data — strip it.
-  $: panelBgImage = (_normalStyles["background-image"] || "").replace(
-    /;\s*$/,
-    ""
-  )
+  $: panelBgImage = helpers.gradientToCss(_normalStyles["background-image"])
   $: hasPanelBg = !!(panelBgColor || panelBgImage)
 
   // Strip background from the inner element's styles so the container

@@ -1,6 +1,7 @@
 import type { Component } from "svelte"
 import { Input, Select } from "@budibase/bbui"
 import ColorPicker from "@/components/design/settings/controls/ColorPicker.svelte"
+import BackgroundGradientControl from "@/components/design/settings/controls/BackgroundGradientControl.svelte"
 
 interface StyleOption {
   label: string
@@ -233,7 +234,7 @@ export const background: StyleGroup = {
     {
       label: "Gradient",
       key: "background-image",
-      control: Select,
+      control: BackgroundGradientControl,
       options: [
         {
           label: "Warm Flame",

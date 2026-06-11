@@ -1,4 +1,5 @@
 import { builderStore } from "@/stores"
+import { helpers } from "@budibase/shared-core"
 
 /**
  * Helper to build a CSS string from a style object.
@@ -6,8 +7,12 @@ import { builderStore } from "@/stores"
 export const buildStyleString = (styleObject, customStyles) => {
   let str = ""
   for (let key of Object.keys(styleObject || {})) {
-    if (styleObject[key] != null) {
-      str += `${key}:${styleObject[key]};`
+    const value = styleObject[key]
+    if (value != null) {
+      const styleValue = helpers.isCustomGradient(value)
+        ? helpers.gradientToCss(value)
+        : value
+      str += `${key}:${styleValue};`
     }
   }
   return str + (customStyles || "")
