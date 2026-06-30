@@ -148,8 +148,7 @@
                 <Input
                   bind:value={column.displayName}
                   placeholder={schema[column.name]?.displayName || "Label"}
-                  on:blur={e => {
-                    // Clear falsy values to allow schema default to take precedence
+                  on:blur={() => {
                     if (!column.displayName || column.displayName === "false") {
                       column.displayName = undefined
                     }
