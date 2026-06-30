@@ -142,7 +142,8 @@
                   options={getRemainingColumnOptions(column.name)}
                   on:change={e => {
                     column.name = e.detail
-                    column.displayName = schema[e.detail]?.displayName || e.detail
+                    column.displayName =
+                      schema[e.detail]?.displayName || e.detail
                   }}
                 />
                 <Input

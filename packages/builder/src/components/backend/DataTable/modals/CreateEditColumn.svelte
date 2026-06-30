@@ -738,10 +738,7 @@
     }}
   />
 
-  <Input
-    label="Default Column Label"
-    bind:value={editableColumn.displayName}
-  />
+  <Input label="Default Column Label" bind:value={editableColumn.displayName} />
 
   {#if editableColumn.type === FieldType.STRING && editableColumn.constraints.length}
     <Input
