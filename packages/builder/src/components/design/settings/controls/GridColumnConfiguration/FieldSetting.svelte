@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import EditComponentPopover from "../EditComponentPopover.svelte"
   import { Toggle, Icon } from "@budibase/bbui"
   import { createEventDispatcher } from "svelte"

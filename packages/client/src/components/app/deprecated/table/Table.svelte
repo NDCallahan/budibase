@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { getContext, onDestroy } from "svelte"
   import { Table } from "@budibase/bbui"
   import SlotRenderer from "./SlotRenderer.svelte"

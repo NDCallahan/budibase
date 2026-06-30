@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { Button, ActionButton, Drawer } from "@budibase/bbui"
   import { search } from "@budibase/frontend-core"
   import { createEventDispatcher } from "svelte"

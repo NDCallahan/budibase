@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   // NOTE: this is not a block - it's just named as such to avoid confusing users,
   // because it functions similarly to one
   import { getContext, onDestroy, onMount } from "svelte"

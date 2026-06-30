@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { enrichSchemaWithRelColumns } from "@budibase/frontend-core"
   import {
     getDatasourceForProvider,
