@@ -54,8 +54,7 @@ export const AppFontFamilyStacks: Record<AppFontFamily, string> = {
     '"Source Sans 3", -apple-system, BlinkMacSystemFont, Segoe UI, "Inter", "Helvetica Neue", Arial, "Noto Sans", sans-serif',
   [AppFontFamily.INTER]:
     '"Inter", -apple-system, BlinkMacSystemFont, Segoe UI, "Helvetica Neue", Arial, "Noto Sans", sans-serif',
-  [AppFontFamily.HELVETICA]:
-    '"Helvetica Neue", Helvetica, Arial, sans-serif',
+  [AppFontFamily.HELVETICA]: '"Helvetica Neue", Helvetica, Arial, sans-serif',
   [AppFontFamily.GEORGIA]: 'Georgia, "Times New Roman", Times, serif',
 }
 
