@@ -68,6 +68,14 @@ const createThemeStore = () => {
         if (key === "fontFamily") {
           return
         }
+        if (key === "fontSize") {
+          customThemeCss += `font-size:${value} !important;`
+          return
+        }
+        if (key === "fontColor") {
+          customThemeCss += `color:${value} !important;`
+          return
+        }
         customThemeCss += `--${key}:${value};`
       })
 

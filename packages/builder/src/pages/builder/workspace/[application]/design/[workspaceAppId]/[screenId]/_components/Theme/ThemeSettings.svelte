@@ -15,6 +15,7 @@
   import AppThemeSelect from "./AppThemeSelect.svelte"
   import ButtonRoundnessSelect from "./ButtonRoundnessSelect.svelte"
   import FontFamilySelect from "./FontFamilySelect.svelte"
+  import FontSizeSelect from "./FontSizeSelect.svelte"
   import PropertyControl from "@/components/design/settings/controls/PropertyControl.svelte"
 
   let popover: any
@@ -62,6 +63,19 @@
     <FontFamilySelect
       {customTheme}
       on:change={e => update("fontFamily", e.detail)}
+    />
+    <FontSizeSelect
+      {customTheme}
+      on:change={e => update("fontSize", e.detail)}
+    />
+    <PropertyControl
+      label="Font color"
+      control={ColorPicker}
+      value={customTheme.fontColor}
+      on:change={e => update("fontColor", e.detail)}
+      props={{
+        spectrumTheme: $themeStore.theme,
+      }}
     />
     <Layout noPadding gap="XS">
       <Label>Button roundness</Label>

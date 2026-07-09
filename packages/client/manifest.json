@@ -9320,7 +9320,6 @@
         "type": "select",
         "label": "Size",
         "key": "size",
-        "defaultValue": "14px",
         "showInBar": true,
         "placeholder": "Default",
         "options": [

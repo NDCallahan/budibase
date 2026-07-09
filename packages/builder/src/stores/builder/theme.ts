@@ -1,4 +1,8 @@
-import { DefaultAppTheme, ensureValidTheme } from "@budibase/shared-core"
+import {
+  DefaultAppTheme,
+  ensureValidAppFontFamily,
+  ensureValidTheme,
+} from "@budibase/shared-core"
 import {
   AppCustomTheme,
   Theme,
@@ -71,6 +75,9 @@ export class ThemeStore extends DerivedBudiStore<ThemeState, ThemeState> {
     }
 
     const updated = { ...selectedWorkspaceApp.customTheme, ...theme }
+    if (updated.fontFamily) {
+      updated.fontFamily = ensureValidAppFontFamily(updated.fontFamily)
+    }
     await workspaceAppStore.edit({
       ...selectedWorkspaceApp,
       customTheme: updated,

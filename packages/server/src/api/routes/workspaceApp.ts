@@ -31,6 +31,8 @@ const updateSchema = Joi.object({
     fontFamily: Joi.string()
       .valid(...Object.values(AppFontFamily))
       .optional(),
+    fontSize: Joi.string().optional(),
+    fontColor: Joi.string().optional(),
     primaryColor: Joi.string().optional(),
     primaryColorHover: Joi.string().optional(),
     navTextColor: Joi.string().optional(),

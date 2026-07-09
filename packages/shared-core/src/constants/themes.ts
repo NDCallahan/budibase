@@ -36,8 +36,16 @@ export const AppFontFamilyOptions = [
     value: AppFontFamily.INTER,
   },
   {
+    label: "Helvetica",
+    value: AppFontFamily.HELVETICA,
+  },
+  {
     label: "Source Sans",
     value: AppFontFamily.SOURCE_SANS,
+  },
+  {
+    label: "Georgia",
+    value: AppFontFamily.GEORGIA,
   },
 ]
 
@@ -46,6 +54,9 @@ export const AppFontFamilyStacks: Record<AppFontFamily, string> = {
     '"Source Sans 3", -apple-system, BlinkMacSystemFont, Segoe UI, "Inter", "Helvetica Neue", Arial, "Noto Sans", sans-serif',
   [AppFontFamily.INTER]:
     '"Inter", -apple-system, BlinkMacSystemFont, Segoe UI, "Helvetica Neue", Arial, "Noto Sans", sans-serif',
+  [AppFontFamily.HELVETICA]:
+    '"Helvetica Neue", Helvetica, Arial, sans-serif',
+  [AppFontFamily.GEORGIA]: 'Georgia, "Times New Roman", Times, serif',
 }
 
 export const ensureValidAppFontFamily = (fontFamily?: string) => {
@@ -61,3 +72,12 @@ export const ensureValidAppFontFamily = (fontFamily?: string) => {
 export const getAppFontFamilyStack = (fontFamily?: string) => {
   return AppFontFamilyStacks[ensureValidAppFontFamily(fontFamily)]
 }
+
+export const DefaultAppFontSize = "14px"
+
+export const AppFontSizeOptions = [
+  { label: "Small", value: "12px" },
+  { label: "Medium", value: "14px" },
+  { label: "Large", value: "18px" },
+  { label: "Extra large", value: "24px" },
+]

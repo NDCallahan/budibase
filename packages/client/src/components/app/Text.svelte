@@ -5,7 +5,7 @@
   export let text: any = ""
   export let color: string | undefined = undefined
   export let align: "left" | "center" | "right" | "justify" = "left"
-  export let size: string | undefined = "14px"
+  export let size: string | undefined = undefined
 
   const component = getContext("component")
   const { styleable } = getContext("sdk")
@@ -24,7 +24,9 @@
   ) => {
     let additions: Record<string, string> = {
       "text-align": alignStyle,
-      "font-size": size || "14px",
+    }
+    if (size) {
+      additions["font-size"] = size
     }
     if (colorStyle) {
       additions.color = colorStyle

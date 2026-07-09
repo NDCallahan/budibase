@@ -110,11 +110,15 @@ export interface AppNavigationLink {
 export enum AppFontFamily {
   SOURCE_SANS = "sourceSans",
   INTER = "inter",
+  HELVETICA = "helvetica",
+  GEORGIA = "georgia",
 }
 
 export interface AppCustomTheme {
   buttonBorderRadius?: string
   fontFamily?: AppFontFamily
+  fontSize?: string
+  fontColor?: string
   primaryColor?: string
   primaryColorHover?: string
 
